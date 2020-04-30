@@ -1,4 +1,7 @@
-Output_Folder = 02_Output
+Source_Folder = 00_Sources
+Output_Folder = 01_Output
+Install_Folder = 02_Install
+ApplicationName = STM_App
 CC = arm-none-eabi-gcc
 LD = arm-none-eabi-ld
 NM = arm-none-eabi-nm
@@ -22,20 +25,21 @@ all: $(SRCS)
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% Linking %%------\n"  
 	@$(shell if [ ! -d $(Output_Folder) ];then mkdir $(Output_Folder);fi )
-	$(LD)  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) -o $(Output_Folder)/App.elf
+	$(LD)  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) -o $(Output_Folder)/$(ApplicationName).elf
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% ELF->BIN %%------\n"  
-	$(OBJCOPY)  $(Output_Folder)/App.elf $(Output_Folder)/App.bin -O binary
+	@$(shell if [ ! -d $(Install_Folder) ];then mkdir $(Install_Folder);fi )
+	$(OBJCOPY)  $(Output_Folder)/$(ApplicationName).elf $(Install_Folder)/$(ApplicationName).bin -O binary
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n=========================="
 	@echo -e "----- BUILD COMPLETE -----"	
 	@echo -e "=========================="
 
 DUMP:
-	$(OBJDUMP) -D -h startup_code/startup.o > prog/startup.list
-	$(OBJDUMP) -D -h main.o > prog/main.list
-	$(OBJDUMP) -D -h prog/prog.elf > prog/prog.list
-	$(NM) --numeric-sort prog/prog.elf
-
+	$(foreach src,$(SRCS),$(shell  echo -e $(OBJDUMP) -D -h $(subst .c,.o,$(src)) ) > $(subst .c,.list,$(src));)
+	$(NM) --numeric-sort $(Output_Folder)/$(ApplicationName).elf
 clean:
 	rm -rf $(subst .c,.o,$(SRCS))
+	rm -rf $(subst .c,.list,$(SRCS))
+	rm -rf $(Output_Folder) $(Install_Folder)
+	

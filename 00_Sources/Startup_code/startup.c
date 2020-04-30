@@ -10,7 +10,7 @@ extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
 
-uint32_t * InterruptVectorArr[2] __attribute__ ((section(".interruptsvector"))) =
+uint32_t const * InterruptVectorArr[2] __attribute__ ((section(".interruptsvector"))) =
 {
 
 	(uint32_t*) 0x20005000,
@@ -19,7 +19,7 @@ uint32_t * InterruptVectorArr[2] __attribute__ ((section(".interruptsvector"))) 
 
 void startup_func(void)
 {
-	uint32_t *SRC,*DEST;
+	volatile uint32_t *SRC,*DEST;
 
 	/*Load .data from FLASH to RAM*/
 	for(SRC=&_data_load,DEST=&_data_start ; DEST < &_data_end ; SRC++,DEST++)
