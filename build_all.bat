@@ -1,2 +1,2 @@
 make all
-pause
+make DUMP

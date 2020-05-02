@@ -13,7 +13,7 @@ void SysTick_Handler(void)
 int main(void)
 {
 
-	// Enable power to GPOI C BUS RCC BASE + RCC_APB2ENR OFFSET
+	// Enable power to GPIO C BUS RCC BASE + RCC_APB2ENR OFFSET
 	RCC->APB2ENR |= ( 1U << 4 );
 	// SET PIN FUNCTIONALITY GPIOx_CRH
 	GPIOC->CRH |= (1<<20);
@@ -27,7 +27,7 @@ int main(void)
 	STK->LOAD = 0x3D0900;
 	//Start Counter
 	STK->CTRL |= (1<<0);
-	
+
 	while(1)
 	{
 		;
