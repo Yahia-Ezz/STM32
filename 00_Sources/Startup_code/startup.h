@@ -4,5 +4,5 @@
 
 void startup_func(void);
 int main(void);
-
+void SysTick_Handler(void);
 #endif

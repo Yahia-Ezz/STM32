@@ -10,11 +10,25 @@ extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
 
-uint32_t const * InterruptVectorArr[2] __attribute__ ((section(".interruptsvector"))) =
+uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
 {
 
-	(uint32_t*) 0x20005000,
-	(uint32_t*) startup_func
+	(uint32_t*) 0x20005000,			// Main stack pointer
+	(uint32_t*) startup_func,		// Reset Handler
+	0,								// Non Maskable Interrupts
+	0,								// Hard Fault
+	0,								// MemManage		
+	0,								// BusFault
+	0,								// UsageFault
+	0,								// RESERVED 			
+	0,								// RESERVED 			
+	0,								// RESERVED 			
+	0,								// RESERVED 			
+	0,								// SVCall 			
+	0,								// Debug Monitor
+	0,								// RESERVED 
+	0,								// PendSV
+	(uint32_t*) SysTick_Handler		// SysTick			
 };
 
 void startup_func(void)
