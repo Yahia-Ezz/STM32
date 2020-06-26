@@ -20,20 +20,34 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// MemManage		
 	0,								// BusFault
 	0,								// UsageFault
-	0,								// RESERVED 			
-	0,								// RESERVED 			
-	0,								// RESERVED 			
-	0,								// RESERVED 			
+	0,	// RESERVED
+	0,	// RESERVED
+	0,	// RESERVED
+	0,	// RESERVED
 	0,								// SVCall 			
 	0,								// Debug Monitor
-	0,								// RESERVED 
+	0,	// RESERVED
 	0,								// PendSV
-	(uint32_t*) SysTick_Handler		// SysTick			
+	(uint32_t*) SysTick_Handler,	// SysTick
+	0,								// WWDG
+	0,								// PVD
+	0,								// TAMPER
+	0,								// RTC
+	0,								// FLASH
+	0,								// RCC
+	(uint32_t*) EXTI0_Handler,		// EXTI0
+	0								// EXTI1
 };
 
 void startup_func(void)
 {
 	volatile uint32_t *SRC,*DEST;
+//
+	//
+	//
+	// ADD END OF STACKS VLAUE 0xDEADBEEF 
+	//
+
 
 	/*Load .data from FLASH to RAM*/
 	for(SRC=&_data_load,DEST=&_data_start ; DEST < &_data_end ; SRC++,DEST++)

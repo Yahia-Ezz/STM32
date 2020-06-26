@@ -8,16 +8,21 @@ NM = arm-none-eabi-nm
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 
-VPATH +=startup_code
+VPATH += $(Source_Folder)/Startup_code  $(Source_Folder)/Interrupts
 
-SRCS = $(wildcard */*.c */*/*.c)
+SRCS = $(wildcard */*.c */*/*.c */*/*/*.c)
 
 CFLAGS += -Wall 
 CFLAGS += -O0 
 CFLAGS += -mcpu=cortex-m3 
 CFLAGS += -mthumb
-CFLAGS += -Iled
-CFLAGS += -Istartup_code
+CFLAGS += -I$(Source_Folder)/btld_fw/nvic
+CFLAGS += -I$(Source_Folder)/Startup_code
+CFLAGS += -I$(Source_Folder)/btld_fw/gpio
+CFLAGS += -I$(Source_Folder)/btld_fw/rcc
+CFLAGS += -I$(Source_Folder)/btld_fw/uart
+CFLAGS += -I$(Source_Folder)/btld_fw/flash_wrapper
+
 
 all: $(SRCS)
 	@echo -e "\n------%% Building %%------\n"  
@@ -25,7 +30,7 @@ all: $(SRCS)
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% Linking %%------\n"  
 	@$(shell if [ ! -d $(Output_Folder) ];then mkdir $(Output_Folder);fi )
-	$(LD)  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) -o $(Output_Folder)/$(ApplicationName).elf
+	$(LD) -Map App.map  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) -o $(Output_Folder)/$(ApplicationName).elf
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% ELF->BIN %%------\n"  
 	@$(shell if [ ! -d $(Install_Folder) ];then mkdir $(Install_Folder);fi )
