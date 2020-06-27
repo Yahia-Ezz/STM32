@@ -1,37 +1,27 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define RCC_BASE_ADD 		0x40021000U
 
-typedef struct 
+
+
+#define AFIO_BASE_ADD 0x40010000U
+typedef struct
 {
-	uint32_t CR;
-	uint32_t CFGR;
-	uint32_t CIR;
-	uint32_t APB2RSTR;
-	uint32_t APB1RSTR;
-	uint32_t AHBENR;
-	uint32_t APB2ENR;
-	uint32_t APB1ENR;
-	uint32_t BDCR;
-	uint32_t CSR;
-}RCC_type;
+	uint16_t EVCR;	// EN - PORT 001 - PIN 0
+	uint16_t ESERVED_EVCR;
+	uint32_t MAPR;
+	uint16_t EXTICR1;
+	uint16_t RESERVED_EXTICR1;
+	uint16_t EXTICR2;
+	uint16_t RESERVED_EXTICR2;
+	uint16_t EXTICR3;
+	uint16_t RESERVED_EXTICR3;
+	uint16_t EXTICR4;
+	uint16_t RESERVED_EXTICR4;
+	uint16_t MAPR2;
+	uint16_t RESERVED_MAPR2;
+}AFO_type;
 
-#define GPIO_BASE_ADD 		0x40011000U
-
-typedef struct 
-{
-	uint32_t CRL;
-	uint32_t CRH;
-	uint16_t IDR;
-	uint16_t RESERVED_IDR;	
-	uint16_t ODR;
-	uint16_t RESERVED_ODR;	
-	uint32_t BSRR;
-	uint16_t BRR;
-	uint16_t RESERVED_BRR;	
-	uint32_t LCKR;
-}GPIO_type;
 
 #define STK_BASE_ADD 	0xE000E010
 
