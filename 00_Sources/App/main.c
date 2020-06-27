@@ -19,11 +19,13 @@ FLASH_t *FLASH = (FLASH_t*)FLASH_BASE_ADDRESS;
 RCC_type *RCC = (RCC_type*)RCC_BASE_ADD;
 USART_t *USART3 = (USART_t*)USART3_BASE_ADDRESS;
 
-
+#if 0 /* SYSTICK Interrupts Handler.*/
 void SysTick_Handler(void)
 {
 	GPIOC->ODR ^= (1<<13);
 }
+#endif
+#if 0 /* External Interrupts 0 Handler.*/
 void EXTI0_Handler(void)
 {
 	// CLear Pending flag
@@ -31,6 +33,7 @@ void EXTI0_Handler(void)
 	//Toggle PIN
 	GPIOC->ODR ^= (1<<13);
 }
+#endif
 
 int main(void)
 {
