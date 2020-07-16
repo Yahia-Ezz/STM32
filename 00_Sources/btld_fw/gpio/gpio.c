@@ -54,7 +54,12 @@ void GPIO_SetPin(GPIO_PORT PORTx, GPIO_PIN PINx, GPIO_VAL STATEx )
 	}
 
 }
+void GPIO_SetPort(GPIO_PORT PORTx, uint16_t *VALUEx )
+{
+	GPIO_ARR[PORTx] = ( volatile GPIO_t*)( GPIO_BASE_ADD + (PORTx*0x400));
+	GPIO_ARR[PORTx]->ODR = (uint16_t)*VALUEx;
 
+}
 GPIO_VAL GPIO_GetPin(GPIO_PORT PORTx, GPIO_PIN PINx)
 {
 	GPIO_ARR[PORTx] = ( volatile GPIO_t*)( GPIO_BASE_ADD + (PORTx*0x400));

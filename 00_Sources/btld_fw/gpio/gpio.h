@@ -88,8 +88,6 @@ typedef enum
 
 void GPIO_InitPin(GPIO_PORT PORTx,GPIO_PIN PINx,GPIO_MODE IN_OUT,GPIO_CNF CONFIG);
 void GPIO_SetPin(GPIO_PORT PORTx, GPIO_PIN PINx, GPIO_VAL STATEx );
+void GPIO_SetPort(GPIO_PORT PORTx, uint16_t *VALUEx );
 GPIO_VAL GPIO_GetPin(GPIO_PORT PORTx, GPIO_PIN PINx);
-//uint8_t GPIO_DeInit(void);
-//uint8_t GPIO_TogglePin(void);
-
 #endif /* GPIO_H_ */

@@ -1,6 +1,6 @@
 #include <stdint.h>
+#include "gpio.h"
 #include "startup.h"
- 
 
 /* Create references to symbols defined in the linker script   */ 
 extern uint32_t _data_load;
@@ -41,25 +41,22 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 
 void startup_func(void)
 {
-	volatile uint32_t *SRC,*DEST;
-//
-	//
-	//
-	// ADD END OF STACKS VLAUE 0xDEADBEEF 
-	//
+	volatile uint32_t *SRC, *DEST;
 
-
-	/*Load .data from FLASH to RAM*/
-	for(SRC=&_data_load,DEST=&_data_start ; DEST < &_data_end ; SRC++,DEST++)
+	/* Clear Non initialized Variables - Variables set to 0 and static variables */
+	for (DEST = &_bss_start; DEST < &_bss_end; DEST++)
 	{
-		*DEST = * SRC;
+		*DEST = (uint32_t) 0X0U;
 	}
 
-
-	/* Load .bss from FLASH to RAM and initialize it to 0 */
-	for(SRC=&_bss_start,DEST=&_bss_end;DEST< &_bss_end ; SRC++,DEST++)
+	/*Load .data variables from FLASH to RAM*/
+	for (SRC = &_data_load, DEST = &_data_start; DEST < &_data_end;	SRC++, DEST++)
 	{
-		*DEST = 0;
+		*DEST = *SRC;
 	}
+
+	/* Mark the End of Stack to check for Overflow  */
+	*((volatile uint32_t*) &_bss_end) = 0xDEADBEEF;
+
 	main();
 }

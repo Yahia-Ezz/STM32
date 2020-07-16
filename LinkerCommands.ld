@@ -9,16 +9,17 @@ SECTIONS
 	/*Holds Constants - Code - Interrupt Vectors  and are aligned at 4 bytes*/
 	.text :
 	{
+		. = ALIGN(4);
 		KEEP(*(.interruptsvector))		/* KEEP command skips optimizing this section */
 		*(.text)
 		*(.const)
-		. = ALIGN(4);
-			 *(.rodata)
+		*(.rodata)
 	} > flash
 	
 	/* Holds Static variables*/ 
 	.data :
 	{
+		. = ALIGN(4);
 		_data_start = . ;				/* Get the Virtual MemoAddr load address*/
 		*(.data)
 		. = ALIGN(4);
@@ -31,8 +32,10 @@ SECTIONS
 	/* Holds uninitialized Data */
 	.bss :
 	{
+		. = ALIGN(4);
 		_bss_start = . ;
 		*(.bss)
+		*(.BSS)
 		*(COMMON)
 		. = ALIGN(4);
 		_bss_end = . ;
