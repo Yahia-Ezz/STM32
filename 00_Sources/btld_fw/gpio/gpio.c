@@ -48,16 +48,16 @@ void GPIO_SetPin(GPIO_PORT PORTx, GPIO_PIN PINx, GPIO_VAL STATEx )
 
 	switch( STATEx )
 	{
-		case GPIO_LOW: GPIO_ARR[PORTx]->ODR &=~ (uint16_t)(1U << PINx); break;
-		case GPIO_HIGH: GPIO_ARR[PORTx]->ODR |= (uint16_t)(1U << PINx); break;
+		case GPIO_LOW: GPIO_ARR[PORTx]->BRR |= (uint16_t)(1U << PINx); break;
+		case GPIO_HIGH: GPIO_ARR[PORTx]->BSRR |= (uint16_t)(1U << PINx); break;
 		default: break;
 	}
 
 }
-void GPIO_SetPort(GPIO_PORT PORTx, uint16_t *VALUEx )
+void GPIO_SetPort(GPIO_PORT PORTx, uint16_t VALUEx )
 {
 	GPIO_ARR[PORTx] = ( volatile GPIO_t*)( GPIO_BASE_ADD + (PORTx*0x400));
-	GPIO_ARR[PORTx]->ODR = (uint16_t)*VALUEx;
+	GPIO_ARR[PORTx]->ODR = (uint16_t)VALUEx;
 
 }
 GPIO_VAL GPIO_GetPin(GPIO_PORT PORTx, GPIO_PIN PINx)

@@ -1,13 +1,14 @@
 #include <stdint.h>
-#include "gpio.h"
 #include "startup.h"
-
+#include "rcc.h"
 /* Create references to symbols defined in the linker script   */ 
 extern uint32_t _data_load;
 extern uint32_t _data_start;
 extern uint32_t _data_end;
 extern uint32_t _bss_start;
 extern uint32_t _bss_end;
+
+RCC_type *RCC = (RCC_type*) RCC_BASE_ADD;
 
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
@@ -42,6 +43,19 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 void startup_func(void)
 {
 	volatile uint32_t *SRC, *DEST;
+
+	/* Enable HSE and choose it as SYS clock*/
+	*((volatile uint32_t*)0x40021000) |= (1<<16);
+	while (!(*((volatile uint32_t*) 0x40021000) & (1 << 17)))
+	{
+		;
+	}
+	*((volatile uint32_t*)0x40021004) |= (1<<0U);
+	*((volatile uint32_t*)0x40021004) &=~ (1<<1);
+
+	/* Turn off HSI*/
+	*((volatile uint32_t*)0x40021000) &=~ (1<<0U);
+
 
 	/* Clear Non initialized Variables - Variables set to 0 and static variables */
 	for (DEST = &_bss_start; DEST < &_bss_end; DEST++)
