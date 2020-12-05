@@ -29,7 +29,7 @@ void GPIO_InitPin(GPIO_PORT PORTx,GPIO_PIN PINx,GPIO_MODE IN_OUT,GPIO_CNF CONFIG
 	}
 	GPIO_ARR[PORTx] = ( volatile GPIO_t*)( GPIO_BASE_ADD + (PORTx*0x400));
 
-	if( PINx > GPIO_PIN07 )
+	if( PINx > GPIO_PIN_07 )
 	{
 		GPIO_ARR[PORTx]->CRH &=~( 0xF << ((PINx%8)*4));
 		GPIO_ARR[PORTx]->CRH |=(((CONFIG%4)<<2|IN_OUT) << ((PINx%8)*4));

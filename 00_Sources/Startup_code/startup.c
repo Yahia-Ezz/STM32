@@ -8,8 +8,9 @@ extern uint32_t _data_end;
 extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
-RCC_type *RCC = (RCC_type*) RCC_BASE_ADD;
+RCC_t *RCC = (RCC_t*) RCC_BASE_ADD;
 
+extern void SPI2_Interrupt_Handler(void);
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
 {
@@ -29,7 +30,8 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// Debug Monitor
 	0,	// RESERVED
 	0,								// PendSV
-	(uint32_t*) SysTick_Handler,	// SysTick
+//	(uint32_t*) SysTick_Handler,	// SysTick
+	0,	// SysTick
 	0,								// WWDG
 	0,								// PVD
 	0,								// TAMPER
@@ -37,7 +39,37 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// FLASH
 	0,								// RCC
 	(uint32_t*) EXTI0_Handler,		// EXTI0
-	0								// EXTI1
+	0,								// EXTI1
+	0,								// EXTI1
+	0,								// EXTI2
+	0,								// EXTI3
+	0,								// EXTI4
+	0,								// DMA1_Channel1
+	0,								// DMA1_Channel2
+	0,								// DMA1_Channel3
+	0,								// DMA1_Channel4
+	0,								// DMA1_Channel5
+	0,								// DMA1_Channel6
+	0,								// DMA1_Channel7
+	0,								// ADC1_2
+	0,								// USB_HP_CAN_TX
+	0,								// USB_LP_CAN_RX0
+	0,								// CAN_RX1
+	0,								// CAN_SCE
+	0,								// EXTI9_5
+	0,								// TIM1_BRK
+	0,								// TIM1_UP
+	0,								// TIM1_TRG_COM
+	0,								// TIM1_CC
+	0,								// TIM2
+	0,								// TIM3
+	0,								// TIM4
+	0,								// I2C1_EV
+	0,								// I2C1_ER
+	0,								// I2C2_EV
+	0,								// I2C2_ER
+	0,								// SPI1
+	(uint32_t*)SPI2_Interrupt_Handler          // SPI2
 };
 
 void startup_func(void)

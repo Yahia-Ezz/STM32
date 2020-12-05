@@ -20,7 +20,7 @@ typedef struct
 	uint32_t APB1ENR;
 	uint32_t BDCR;
 	uint32_t CSR;
-}RCC_type;
+}RCC_t;
 
 #define RCC_BASE_ADD 		0x40021000U
 #define RCC_APB2ENR			0x40021018U

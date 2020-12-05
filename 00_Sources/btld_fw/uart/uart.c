@@ -11,7 +11,7 @@
 #include "gpio.h"
 #include "uart.h"
 
-extern RCC_type *RCC;
+extern RCC_t *RCC;
 extern USART_t *USART3;
 
 void USART3_INIT(void)
@@ -19,7 +19,7 @@ void USART3_INIT(void)
 	/* ENABLE APB1 */
 	RCC->APB1ENR |= RCC_USART3_MASK_EN;
 	/* INIT GPIO */
-	GPIO_InitPin(GPIO_PORTB,GPIO_PIN10,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);  //TX
+	GPIO_InitPin(GPIO_PORTB,GPIO_PIN_10,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);  //TX
 
 	/* Set Config */
 	USART3->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV )234.375 = ( 8000000/(16*9600) ) 52( 0x34 ) 0.833*16 ( 0x2|1 )

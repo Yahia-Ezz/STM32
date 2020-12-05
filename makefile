@@ -17,6 +17,7 @@ CFLAGS += -O0
 CFLAGS += -mcpu=cortex-m3 
 CFLAGS += -mthumb
 CFLAGS += -I$(Source_Folder)/btld_fw/nvic
+CFLAGS += -I$(Source_Folder)/btld_fw/spi
 CFLAGS += -I$(Source_Folder)/Startup_code
 CFLAGS += -I$(Source_Folder)/btld_fw/gpio
 CFLAGS += -I$(Source_Folder)/btld_fw/rcc
@@ -41,7 +42,7 @@ all: $(SRCS)
 	@echo -e "----- BUILD COMPLETE -----"	
 	@echo -e "=========================="	
 
-DUMP:
+dump:
 	$(foreach src,$(SRCS),$(shell  echo -e $(OBJDUMP) -D -h $(subst .c,.o,$(src)) ) > $(subst .c,.list,$(src));)
 	$(NM) --numeric-sort $(Output_Folder)/$(ApplicationName).elf
 clean:

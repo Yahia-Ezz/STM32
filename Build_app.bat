@@ -1,2 +1,2 @@
 make all
-make DUMP
+make dump

@@ -16,11 +16,11 @@ extern USART_t * USART3;
 extern uint8_t Stats,CC;
 /********** Static Functions Declaration **********/
 
-static void xModemStartTransfer(void);
+//void xModemStartTransfer(void);
+//uint8_t XModemResponseParser(XModemPacket_t *Var);
+//void xModemCancelTransfer(void);
 static void xModemSendACK(void);
 static void xModemSendNACK(void);
-static void xModemCancelTransfer(void);
-static uint8_t XModemResponseParser(XModemPacket_t *Var);
 static void XModemReceivePayload (XModemPacket_t *Var);
 
 
@@ -60,19 +60,6 @@ void XModemHandler(XModemPacket_t *Var)
 	}
 }
 
-static uint8_t XModemResponseParser(XModemPacket_t *Var)
-{
-	uint8_t checksum = 0U,i, returnValue = XMODEM_NAK;
-	for(i=0;i<128;i++)
-	{
-		checksum += Var->data[i];
-	}
-	if( ( !(Var->packetNum & Var->packetNumC))&& (checksum == Var->Checksum)) //&& checksum == Data[130]
-	{
-		returnValue = XMODEM_ACK;
-	}
-	return returnValue;
-}
 static void XModemReceivePayload (XModemPacket_t *Var)
 {
 	uint8_t counter = 0;
@@ -87,10 +74,6 @@ static void XModemReceivePayload (XModemPacket_t *Var)
 }
 
 
-static void xModemStartTransfer(void)
-{
-	USART3_Send(XMODEM_NAK);
-}
 static void xModemSendACK(void)
 {
 	USART3_Send(XMODEM_ACK);
@@ -100,8 +83,12 @@ static void xModemSendNACK(void)
 {
 	USART3_Send(XMODEM_NAK);
 }
-
-static void xModemCancelTransfer(void)
+#if 0
+void xModemStartTransfer(void)
+{
+	USART3_Send(XMODEM_NAK);
+}
+void xModemCancelTransfer(void)
 {
 	uint8_t i;
 	for(i=0;i<3;i++)
@@ -110,3 +97,17 @@ static void xModemCancelTransfer(void)
 	}
 	SERIAL_Print("\r\nStopped Transfer\r\n");
 }
+uint8_t XModemResponseParser(XModemPacket_t *Var)
+{
+	uint8_t checksum = 0U,i, returnValue = XMODEM_NAK;
+	for(i=0;i<128;i++)
+	{
+		checksum += Var->data[i];
+	}
+	if( ( !(Var->packetNum & Var->packetNumC))&& (checksum == Var->Checksum)) //&& checksum == Data[130]
+	{
+		returnValue = XMODEM_ACK;
+	}
+	return returnValue;
+}
+#endif
