@@ -78,7 +78,7 @@ void startup_func(void)
 
 	/* Enable HSE */
 //	RCC->CR = 0x00014883;
-//	 RCC->CR |= (1U<<16) ;        // HSE ON
+//	 RCC->CR |= (1U<<16) ;        // HSE ON                     <==== CAN"T USE IT HERE CUZ THE STACK ISN"T INITIALIZED YET.
 	*((volatile uint32_t*)0x40021000) |= (1U<<16);
 	while (!(*((volatile uint32_t*)0x40021000) & (1 << 17)))
 	{
