@@ -91,8 +91,8 @@ void startup_func(void)
 	}
 	*((volatile uint32_t*)0x40021004) &=~ (1U<<17);     // HSE clock Not Divded
 	*((volatile uint32_t*)0x40021004) &=~ ((1U<<8)|(1U<<9));     // HSE clock Not Divded
-	*((volatile uint32_t*)0x40021004) |= (1U<<10);     // APB1 Clk / 2 ( Max 36 Mhz ) Input 40Mhz  clock Not Divided (20Mhz Current)
-	*((volatile uint32_t*)0x40021004) |= (0x3<<18);     // Set PLLMUL to x5
+//	*((volatile uint32_t*)0x40021004) |= (1U<<10);     // APB1 Clk / 2 ( Max 36 Mhz ) Input 40Mhz  clock Not Divided (20Mhz Current)
+	*((volatile uint32_t*)0x40021004) |= (1U<<19);     // Set PLLMUL to x4
 	*((volatile uint32_t*)0x40021004) |= (1U<<16);      // Set PLLSRC to HSE
 
 
