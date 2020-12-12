@@ -26,13 +26,12 @@ FLASH_t *FLASH = (FLASH_t*) FLASH_BASE_ADDRESS;
 USART_t *USART3 = (USART_t*) USART3_BASE_ADDRESS;
 DMA_t *DMA = (DMA_t*) DMA_1_BASE_ADDRESS;
 SPI_t*SPI_2 = (SPI_t*) SPI_BASE_ADDRESS;
-extern RCC_t *RCC;
 void SPI2_Interrupt_Handler(void);
 XModemPacket_t Packet_Arr[25];
 uint8_t FF=0x00U;
 int Sec1,Sec2=0,Min1=5,Min2=2;
 
-
+extern RCC_t *RCC;
 /*********** Functions ***********/
 //#if 0 /* SYSTICK Interrupts Handler.*/
 void SysTick_Handler(void)
@@ -98,6 +97,8 @@ int main(void)
 
 	       SPI_2->SR &=~ (1<<0);
 #endif
+	       SERIAL_Print("RCC CR = 0x%x\n",*((uint32_t*)0x40021000));
+	       SERIAL_Print("RCC CFGR = 0x%x",*((uint32_t*)0x40021004));
 
 	while(1)
 	{

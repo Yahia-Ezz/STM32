@@ -8,7 +8,6 @@ extern uint32_t _data_end;
 extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
-RCC_t *RCC = (RCC_t*) RCC_BASE_ADD;
 
 extern void SPI2_Interrupt_Handler(void);
 
@@ -71,22 +70,44 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// SPI1
 	(uint32_t*)SPI2_Interrupt_Handler          // SPI2
 };
+RCC_t *RCC =(RCC_t*)RCC_BASE_ADD;
 
 void startup_func(void)
 {
 	volatile uint32_t *SRC, *DEST;
 
-	/* Enable HSE and choose it as SYS clock*/
-	*((volatile uint32_t*)0x40021000) |= (1<<16);
-	while (!(*((volatile uint32_t*) 0x40021000) & (1 << 17)))
+	/* Enable HSE */
+//	RCC->CR = 0x00014883;
+//	 RCC->CR |= (1U<<16) ;        // HSE ON
+	*((volatile uint32_t*)0x40021000) |= (1U<<16);
+	while (!(*((volatile uint32_t*)0x40021000) & (1 << 17)))
 	{
 		;
 	}
-	*((volatile uint32_t*)0x40021004) |= (1<<0U);
-	*((volatile uint32_t*)0x40021004) &=~ (1<<1);
+	*((volatile uint32_t*)0x40021000) &=~ (1<<24) ;        // PLL OFF
+	while ((*((volatile uint32_t*)0x40021000) & (1 << 25)))
+	{
+		;
+	}
+	*((volatile uint32_t*)0x40021004) &=~ (1U<<17);     // HSE clock Not Divded
+	*((volatile uint32_t*)0x40021004) &=~ ((1U<<8)|(1U<<9));     // HSE clock Not Divded
+	*((volatile uint32_t*)0x40021004) |= (1U<<10);     // APB1 Clk / 2 ( Max 36 Mhz ) Input 40Mhz  clock Not Divided (20Mhz Current)
+	*((volatile uint32_t*)0x40021004) |= (0x3<<18);     // Set PLLMUL to x5
+	*((volatile uint32_t*)0x40021004) |= (1U<<16);      // Set PLLSRC to HSE
+
+
+
+	/* Enable PLLON */
+	*((volatile uint32_t*)0x40021000) |= (1<<24);
+	while (!(*((volatile uint32_t*)0x40021000) & (1 << 25)))
+	{
+		;
+	}
+	*((volatile uint32_t*)0x40021004) |= (1U<<1);       // select PLL as clock from SW
+
 
 	/* Turn off HSI*/
-	*((volatile uint32_t*)0x40021000) &=~ (1<<0U);
+	*((volatile uint32_t*)0x40021000)  &=~ (1<<0U);
 
 
 	/* Clear Non initialized Variables - Variables set to 0 and static variables */

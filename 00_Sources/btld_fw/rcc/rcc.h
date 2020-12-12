@@ -2,7 +2,7 @@
  * rcc.h
  *
  *  Created on: May 11, 2020
- *      Author: helld
+ *      Author: Yahia Ezz
  */
 
 #ifndef RCC_H_
@@ -25,6 +25,11 @@ typedef struct
 #define RCC_BASE_ADD 		0x40021000U
 #define RCC_APB2ENR			0x40021018U
 #define	RCC_USART3_MASK_EN	0x00040000U
+
+
+
+//0000: PLL input clock x 2
+//1111: PLL input clock x 16
 
 
 

@@ -2,12 +2,9 @@
  * rcc.c
  *
  *  Created on: May 11, 2020
- *      Author: helld
+ *      Author: Yahia Ezz
  */
 
-#ifndef RCC_C_
-#define RCC_C_
+#include <stdint.h>
+#include "rcc.h"
 
-
-
-#endif /* RCC_C_ */

@@ -7,9 +7,9 @@
 
 #include <stdint.h>
 #include <stdarg.h>
-#include "rcc.h"
 #include "gpio.h"
 #include "uart.h"
+#include "rcc.h"
 
 extern RCC_t *RCC;
 extern USART_t *USART3;
@@ -22,7 +22,9 @@ void USART3_INIT(void)
 	GPIO_InitPin(GPIO_PORTB,GPIO_PIN_10,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);  //TX
 
 	/* Set Config */
-	USART3->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV )234.375 = ( 8000000/(16*9600) ) 52( 0x34 ) 0.833*16 ( 0x2|1 )
+//	USART3->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV )234.375 = ( 8000000/(16*9600) ) 52( 0x34 ) 0.375*16 ( 0x6 )
+//	USART3->BRR = 0x3C6;// 40MHZ   9600 baud rate (FHz/16*baud )= DIV )260.416 = ( 40000000/(16*9600) ) 60( 0x3C ) 0.375*16 ( 0x6 )
+	USART3->BRR = 0x823;// 20MHZ   9600 baud rate (FHz/16*baud )= DIV )130.208 = ( 40000000/(16*9600) ) 60( 0x3C ) 0.208*16 ( 0x3 )
 	USART3->CR1 |= (1 << 3)|(1<<2);
 	USART3->CR1 |= (1 << 13);  //TX ENABLE === USART Enable
 }
