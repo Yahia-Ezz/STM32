@@ -37,31 +37,40 @@ void USART3_Send(char TX)
 		;
 	}
 }
-static void FormatSpecifierHandler(char X, uint32_t Var)
+static void FormatSpecifierHandler(char X, void * Var)
 {
-	uint8_t arr[10], Hex_Temp;
-	int8_t i, x = 28,flagA=1,flagB=1;
+	uint8_t arr[10], Hex_Temp=0;
+	int8_t i=0, x = 28,flagA=1,flagB=1;
 	uint32_t tmp = 0xF0000000;
+	uint32_t tmp2 = (uint32_t)Var;
+//	char *XX = &(char*)Var;
 	switch (X)
 	{
 	case 'c':
-		USART3_Send(Var);
+		USART3_Send((uint32_t)Var);
 		break;
 	case 'd':
-		for (i = 0; Var != 0U; i++)
-		{
-			arr[i] = Var % 10 + '0';
-			Var /= 10;
-		}
-		for (i = i - 1; i > (-1); i--)
-		{
-			USART3_Send(arr[i]);
-		}
+	    if ((uint32_t) Var == 0)
+	    {
+			USART3_Send('0');
+	    }
+	    else
+	    {
+            for (i = 0; tmp2 != 0U; i++)
+            {
+                arr[i] = tmp2 % 10 + '0';
+                tmp2 /= 10;
+            }
+            for (i = i - 1; i > (-1); i--)
+            {
+                USART3_Send(arr[i]);
+            }
+	    }
 		break;
 	case 'x':
 		for (; tmp != 0U; x -= 4)
 		{
-			Hex_Temp = ((tmp & Var) >> (x));
+			Hex_Temp = ((tmp & (uint32_t)Var) >> (x));
 			if((flagA && Hex_Temp != 0x00) || (flagA && x==4))
 			{
 				flagA=flagB=0;
@@ -73,6 +82,13 @@ static void FormatSpecifierHandler(char X, uint32_t Var)
 			tmp >>= 4;
 		}
 		break;
+    case 's':
+        while( *((char*)Var+i) != '\0')
+        {
+            USART3_Send( *((char*)Var+i) );
+            i++;
+        }
+		break;
 	default:
 		break;
 	}
@@ -80,9 +96,10 @@ static void FormatSpecifierHandler(char X, uint32_t Var)
 
 void SERIAL_Print(char *fmt, ...)
 {
-	uint8_t cnt = 0;
-	uint32_t tmp;
 	va_list lst;
+	uint8_t cnt = 0;
+	char *tmp_pu8 = 0;
+	uint32_t tmp_u32 = 0;
 
 	va_start(lst, fmt);
 
@@ -95,9 +112,23 @@ void SERIAL_Print(char *fmt, ...)
 		}
 		else
 		{
-			cnt++;
-			tmp = va_arg(lst, uint32_t);
-			FormatSpecifierHandler(fmt[cnt], tmp);
+            cnt++;
+            switch ( fmt[cnt] )
+            {
+                case 's' :
+                    tmp_pu8 = va_arg(lst, char *);
+                    FormatSpecifierHandler(fmt[cnt], tmp_pu8);
+                    break;
+                case 'c' :
+                case 'd' :
+                case 'x' :
+                    tmp_u32 = va_arg(lst, uint32_t);
+                    FormatSpecifierHandler(fmt[cnt],(void*) tmp_u32);
+                    break;
+
+                default :
+                    break;
+            }
 		}
 		cnt++;
 	}

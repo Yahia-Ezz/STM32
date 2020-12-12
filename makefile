@@ -24,7 +24,9 @@ CFLAGS += -I$(Source_Folder)/btld_fw/rcc
 CFLAGS += -I$(Source_Folder)/btld_fw/uart
 CFLAGS += -I$(Source_Folder)/btld_fw/flash_wrapper
 CFLAGS += -I$(Source_Folder)/btld_fw/dma
+CFLAGS += -I$(Source_Folder)/btld_fw/scb
 CFLAGS += -I$(Source_Folder)/X_Modem
+CFLAGS += -I$(Source_Folder)/btld
 
 all: $(SRCS)
 	@echo -e "\n------%% Building %%------\n"  

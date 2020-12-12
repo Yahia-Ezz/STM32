@@ -29,8 +29,7 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// Debug Monitor
 	0,	// RESERVED
 	0,								// PendSV
-//	(uint32_t*) SysTick_Handler,	// SysTick
-	0,	// SysTick
+	(uint32_t*) SysTick_Handler,	// SysTick
 	0,								// WWDG
 	0,								// PVD
 	0,								// TAMPER
