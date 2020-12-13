@@ -6,7 +6,6 @@
  */
 
 #include <stdint.h>
-#include "string.h"
 #include "btld.h"
 #include "uart.h"
 #include "scb.h"
@@ -16,11 +15,13 @@ uint8_t BTLD_ReceiveBuffer[30]={0};
 static uint8_t myStrCmp(char *a,char *b);
 void PRINT_HI(void);
 
+extern void SPI_RECEIVE(void);
 
 DBG_LST_t  DBG_LIST[] =
 {
         {"PRINT_HI" , PRINT_HI},
-        {"ECU_RESET" , ECU_RESET}
+        {"ECU_RESET" , ECU_RESET},
+        {"SPI_RX_BUFFER_DISPLAY" , SPI_RECEIVE}
 };
 
 void PRINT_HI(void)

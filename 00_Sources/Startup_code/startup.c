@@ -38,7 +38,6 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// RCC
 	(uint32_t*) EXTI0_Handler,		// EXTI0
 	0,								// EXTI1
-	0,								// EXTI1
 	0,								// EXTI2
 	0,								// EXTI3
 	0,								// EXTI4

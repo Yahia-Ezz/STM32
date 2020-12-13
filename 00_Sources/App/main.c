@@ -51,13 +51,23 @@ void EXTI0_Handler( void )
     SERIAL_Print("%c",x);
 }
 //#endif
+    uint8_t SPI_arr[16]={5};
 void SPI2_Interrupt_Handler( void )
 {
-    volatile uint16_t X = SPI_2->DR;
-    SERIAL_Print("Interrupt Fired\n\n");
-
+    volatile static uint8_t i=0;
+    if(i==16)
+    {
+        i=0;
+    }
+    SPI_arr[i] = SPI_2->DR;
+    SPI_2->DR = 0xA0+i;
+    i++;
 }
-
+void SPI_RECEIVE(void)
+{
+    for(int i=0;i<16;i++)
+    SERIAL_Print("0x%x  ",(uint8_t)SPI_arr[i]);
+}
 int main( void )
 {
     GPIO_InitPin(GPIO_PORTC, GPIO_PIN_13, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
@@ -91,14 +101,14 @@ int main( void )
     //Start Counter
     STK->CTRL |= (1 << 0);
     USART3_INIT();
-    SERIAL_Print("\n================== MAIN ====================\n");
-//    SERIAL_Print("RCC CR = 0x%x\n", *((uint32_t*) 0x40021000));
-//    SERIAL_Print("RCC CFGR = 0x%x", *((uint32_t*) 0x40021004));
     SPI_init();
+    SERIAL_Print("\n================== MAIN ====================\n");
+
     EXTI->IMR |= (1 << 0);
     *((volatile uint32_t*) 0xE000E104) = (1 << 4); // SPI2 ISER Perhipheral interrupt Enable
 //    SPI_2->SR &= ~(1 << 0);
 #endif
+
     BTLD_CLI_Handler();
     while ( 1 )
     {
