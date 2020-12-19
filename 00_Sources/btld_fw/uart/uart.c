@@ -7,12 +7,12 @@
 
 #include <stdint.h>
 #include <stdarg.h>
-#include "gpio.h"
-#include "uart.h"
 #include "rcc.h"
+#include "uart.h"
+#include "gpio.h"
 
 extern RCC_t *RCC;
-extern USART_t *USART3;
+USART_t *USART3 = (USART_t*) USART3_BASE_ADDRESS;
 
 void USART3_INIT(void)
 {

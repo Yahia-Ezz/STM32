@@ -8,7 +8,8 @@
 #include <stdint.h>
 #include "flash_wrapper.h"
 
-extern FLASH_t* FLASH;
+
+FLASH_t *FLASH = (FLASH_t*) FLASH_BASE_ADDRESS;
 
 static void FLASH_Unlock(void)
 {

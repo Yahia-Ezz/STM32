@@ -9,35 +9,31 @@
 #include "xmodem.h"
 #include "spi.h"
 #include "btld.h"
+#include "i2c.h"
 
 #define AFIOEN 	0U
 #define MR0		0U
 #define IOPBEN 3U
 
 /*********** Global Variable ***********/
-GPIO_t *GPIOC = (GPIO_t*) 0x40011000;
-GPIO_t *GPIOB = (GPIO_t*) 0x40010C00;
-GPIO_t *GPIOA = (GPIO_t*) 0x40010800;
+
+
 STK_type *STK = (STK_type*) STK_BASE_ADD;
 EXTI_t *EXTI = (EXTI_t*) EXTI_BASE_ADD;
 AFO_type *AFIO = (AFO_type*) AFIO_BASE_ADD;
-FLASH_t *FLASH = (FLASH_t*) FLASH_BASE_ADDRESS;
-USART_t *USART3 = (USART_t*) USART3_BASE_ADDRESS;
 DMA_t *DMA = (DMA_t*) DMA_1_BASE_ADDRESS;
-SPI_t*SPI_2 = (SPI_t*) SPI_BASE_ADDRESS;
-void SPI2_Interrupt_Handler( void );
 XModemPacket_t Packet_Arr[25];
+
 uint8_t FF = 0x00U;
 int Sec1, Sec2 = 0, Min1 = 5, Min2 = 2;
 
 extern RCC_t *RCC;
+extern FLASH_t* FLASH;
 /*********** Functions ***********/
 //#if 0 /* SYSTICK Interrupts Handler.*/
 void SysTick_Handler( void )
 {
-    GPIOB->ODR ^= (1 << 1U);
-    GPIOC->ODR ^= (1 << 13);
-    Sec1--;
+    GPIO_SetPin(GPIO_PORTC,GPIO_PIN_13,(GPIO_VAL)(!(GPIO_GetPin(GPIO_PORTC,GPIO_PIN_13))));
 }
     uint8_t x;
 
@@ -46,83 +42,42 @@ void EXTI0_Handler( void )
 {
     // CLear Pending flag
     EXTI->PR |= (1 << 0);
-    //Toggle PIN
-    GPIOC->ODR ^= (1 << 13);
     SERIAL_Print("%c",x);
 }
 //#endif
-    uint8_t SPI_arr[16]={5};
-void SPI2_Interrupt_Handler( void )
-{
-    volatile static uint8_t i=0;
-    if(i==16)
-    {
-        i=0;
-    }
-    SPI_arr[i] = SPI_2->DR;
-    SPI_2->DR = 0xA0+i;
-    i++;
-}
-void SPI_RECEIVE(void)
-{
-    for(int i=0;i<16;i++)
-    SERIAL_Print("0x%x  ",(uint8_t)SPI_arr[i]);
-}
+
+
 int main( void )
 {
     GPIO_InitPin(GPIO_PORTC, GPIO_PIN_13, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
 
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_00, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_01, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_12, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_13, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_14, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-    GPIO_InitPin(GPIO_PORTB, GPIO_PIN_15, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-
-    GPIO_SetPin(GPIO_PORTB, GPIO_PIN_12, GPIO_HIGH);
-    GPIO_SetPin(GPIO_PORTB, GPIO_PIN_13, GPIO_HIGH);
-    GPIO_SetPin(GPIO_PORTB, GPIO_PIN_14, GPIO_HIGH);
-    GPIO_SetPin(GPIO_PORTB, GPIO_PIN_15, GPIO_HIGH);
-
-    for ( uint8_t i = 0 ; i < 7 ; i++ )
-    {
-        GPIO_InitPin(GPIO_PORTA, i, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
-    }
-
-#if 1 /* Enable SYSTICK Interrupts.*/
-    // STK_CTRL AHB CLOCK and enable exceptions
+/* Enable SYSTICK Interrupts.*/
+#if 1
+    /* STK_CTRL AHB CLOCK and enable exceptions*/
     STK->CTRL |= (1 << 2) | (1 << 1);
     // Set reload value (8Mhz) = 500ms (4million ticks) Note (24bits 0 -> 16,777,215)
-//	STK->LOAD = 0x3D0900; //500ms @ 8Mhz
-//    STK->LOAD = 0x7A1200; //1000mSec @ 8Mhz
-//    STK->LOAD = (0x1E84800); // 1000mSec @ 32Mhz    <-- Won't work cuz max register value can hold is 24 bits and 1000 @ 32 Mhz Exceeds it
     STK->LOAD = (0x1E84800/2); // 500mSec @ 32Mhz    <-- Won't work cuz max register value can hold is 24 bits and 1000 @ 32 Mhz Exceeds it 32000000
     //Start Counter
     STK->CTRL |= (1 << 0);
-    USART3_INIT();
-    SPI_init();
-    SERIAL_Print("\n================== MAIN ====================\n");
-
-    EXTI->IMR |= (1 << 0);
-    *((volatile uint32_t*) 0xE000E104) = (1 << 4); // SPI2 ISER Perhipheral interrupt Enable
-//    SPI_2->SR &= ~(1 << 0);
 #endif
 
+    USART3_INIT();
+    SPI_init();
+    I2C_1_Init();
+    //Enable Global Interrupts
+    EXTI->IMR |= (1 << 0);
+
+    SERIAL_Print("\n================== MAIN ====================\n");
     BTLD_CLI_Handler();
+
     while ( 1 )
     {
-        if ( (SPI_2->SR & (1 << 0)) != 0U )
-        {
-            SERIAL_Print("RECEIVED X");
-            SPI_2->SR &= ~(1 << 0);
-        }
+        /*Do Nothing*/
+        ;
     }
     return 1;
 }
 
-//	USART3_INIT();
-//
 //	XModemHandler(Packet_Arr);
 //
 //	SERIAL_Print("DONE \r\n\n");

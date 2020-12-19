@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "startup.h"
 #include "rcc.h"
+
 /* Create references to symbols defined in the linker script   */ 
 extern uint32_t _data_load;
 extern uint32_t _data_start;
@@ -9,7 +10,8 @@ extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
 
-extern void SPI2_Interrupt_Handler(void);
+extern void SPI_2_Handler(void);
+extern void I2C_1_Handler(void);
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
 {
@@ -61,12 +63,12 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// TIM2
 	0,								// TIM3
 	0,								// TIM4
-	0,								// I2C1_EV
+	(uint32_t *)I2C_1_Handler,		// I2C1_EV
 	0,								// I2C1_ER
 	0,								// I2C2_EV
 	0,								// I2C2_ER
 	0,								// SPI1
-	(uint32_t*)SPI2_Interrupt_Handler          // SPI2
+	(uint32_t*)SPI_2_Handler        // SPI2
 };
 RCC_t *RCC =(RCC_t*)RCC_BASE_ADD;
 

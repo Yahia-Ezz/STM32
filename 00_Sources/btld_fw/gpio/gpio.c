@@ -14,8 +14,7 @@
 static volatile GPIO_t * GPIO_ARR[7];
 
 
-
-/************************** Functions **************************/
+/***************************** Functions *****************************/
 
 void GPIO_InitPin(GPIO_PORT PORTx,GPIO_PIN PINx,GPIO_MODE IN_OUT,GPIO_CNF CONFIG)
 {
@@ -64,5 +63,5 @@ GPIO_VAL GPIO_GetPin(GPIO_PORT PORTx, GPIO_PIN PINx)
 {
 	GPIO_ARR[PORTx] = ( volatile GPIO_t*)( GPIO_BASE_ADD + (PORTx*0x400));
 
-	return (GPIO_ARR[PORTx]->IDR |= (uint16_t)(1U << PINx))>>PINx;
+	return ((GPIO_ARR[PORTx]->IDR &(uint16_t)(1U << PINx))>>PINx);
 }

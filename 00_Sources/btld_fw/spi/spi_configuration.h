@@ -8,7 +8,7 @@
 #ifndef SPI_CONFIGURATION_H_
 #define SPI_CONFIGURATION_H_
 
-static volatile SPI_Configuration UserConfig =
+static volatile SPI_Configurations SPI_UserConfig =
 {
 		.TransferDirection = UNIDIRECTIONAL,
 		.Mode = SLAVE,

@@ -10,6 +10,11 @@
 
 #define SPI_BASE_ADDRESS 	0x40003800U
 
+#define SPI_BUFFER_SIZE     16U
+
+#define SPI2_EN 14U
+#define RXNEIE 6U
+
 #define SPI_CPHA_SHIFT      0U
 #define SPI_CPOL_SHIFT      1
 #define SPI_MSTR_SHIFT      2
@@ -39,7 +44,7 @@ typedef struct
 	uint8_t CRCCalculation;
 	uint8_t CRCPol;
 	uint8_t Transmission;
-}SPI_Configuration;
+}SPI_Configurations;
 
 typedef struct
 {

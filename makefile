@@ -25,6 +25,7 @@ CFLAGS += -I$(Source_Folder)/btld_fw/uart
 CFLAGS += -I$(Source_Folder)/btld_fw/flash_wrapper
 CFLAGS += -I$(Source_Folder)/btld_fw/dma
 CFLAGS += -I$(Source_Folder)/btld_fw/scb
+CFLAGS += -I$(Source_Folder)/btld_fw/i2c
 CFLAGS += -I$(Source_Folder)/X_Modem
 CFLAGS += -I$(Source_Folder)/btld
 

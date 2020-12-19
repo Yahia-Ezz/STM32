@@ -9,24 +9,50 @@
 #include "btld.h"
 #include "uart.h"
 #include "scb.h"
+#include "gpio.h"
+#include "i2c.h"
+#include "spi.h"
 
 uint8_t BTLD_ReceiveBuffer[30]={0};
 
 static uint8_t myStrCmp(char *a,char *b);
 void PRINT_HI(void);
 
+extern I2C_t *I2C;
+void I2C_P(void);
 extern void SPI_RECEIVE(void);
 
 DBG_LST_t  DBG_LIST[] =
 {
         {"PRINT_HI" , PRINT_HI},
         {"ECU_RESET" , ECU_RESET},
-        {"SPI_RX_BUFFER_DISPLAY" , SPI_RECEIVE}
+        {"SPI_RX_BUFFER_DISPLAY" , SPI_RECEIVE},
+        {"I2C" , I2C_P}
 };
-
+void SPI_RECEIVE(void)
+{
+    extern uint8_t SPI_RX_BUFFER[];
+    for(int i=0;i<SPI_BUFFER_SIZE;i++)
+    SERIAL_Print("0x%x  ",(uint8_t)SPI_RX_BUFFER[i]);
+}
 void PRINT_HI(void)
 {
     SERIAL_Print("\nHI\n");
+}
+
+void I2C_P(void)
+{
+    SERIAL_Print("Print\n");
+    SERIAL_Print("I2C CCR = 0x%x \n",I2C->CCR);
+    SERIAL_Print("I2C CR1 = 0x%x \n",I2C->CR1);
+    SERIAL_Print("I2C CR2 = 0x%x \n",I2C->CR2);
+    SERIAL_Print("I2C DR = 0x%x \n",I2C->DR);
+    SERIAL_Print("I2C OAR1 = 0x%x \n",I2C->OAR1);
+    SERIAL_Print("I2C OAR2 = 0x%x \n",I2C->OAR2);
+    SERIAL_Print("I2C TRISE = 0x%x \n",I2C->TRISE);
+    SERIAL_Print("I2C SR1 = 0x%x \n",(I2C->SR1&0xFFFF));
+    SERIAL_Print("I2C SR2 = 0x%x \n",(I2C->SR2*0xFFFF));
+    I2C->SR1 &=~(1<<8);
 }
 void BTLD_CLI_Handler(void)
 {
@@ -77,6 +103,7 @@ static uint8_t myStrCmp(char *a,char *b)
         if(a[i] != b[i])
         {
             flag =1;
+            break;
         }
         i++;
     }

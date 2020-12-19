@@ -12,14 +12,19 @@ typedef struct
 {
 	uint32_t ISR;
 	uint32_t IFCR;
-//	uint32_t CCR;
-//	uint32_t CNDTR;
-//	uint32_t CPAR;
-//	uint32_t CMAR;
-//	uint32_t RESERVED;
 }DMA_t;
 
-#define DMA_1_BASE_ADDRESS	0x40020000
+typedef struct
+{
+	uint32_t CCR;
+	uint32_t CNDTR;
+	uint32_t CPAR;
+	uint32_t CMAR;
+	uint32_t RESERVED;
+}DMA_Channel_t;
+
+#define DMA_BASE_ADDRESS	0x40020000
+#define DMA_1_BASE_OFFSET	(DMA_BASE_ADDRESS + 0x8)
 void DMA_Init(void);
 
 #endif /* DMA_H_ */
