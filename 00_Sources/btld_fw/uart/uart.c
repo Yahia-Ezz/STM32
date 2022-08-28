@@ -10,22 +10,69 @@
 #include "rcc.h"
 #include "uart.h"
 #include "gpio.h"
+#include "dma.h"
 
 extern RCC_t *RCC;
+DMA_Channel_t *My_DMA = (DMA_Channel_t*) DMA_1_BASE_OFFSET_CHANNEL4;
 USART_t *USART3 = (USART_t*) USART3_BASE_ADDRESS;
+
+#define		DMA1_EN		(1<<0)
+#define		DMAT_EN		(1<<7)
+#define		MINC_EN		(1<<7)
+#define		CIRC_EN		(1<<5)
+#define		DIR_EN		(1<<4)
+#define		TCIE_EN		(1<<1)
+#define		UE_EN		(1<<13)
+#define		TE_EN		(1<<3)
+
+char myar= 'A';
 
 void USART3_INIT(void)
 {
-	/* ENABLE APB1 */
-	RCC->APB2ENR |= RCC_USART3_MASK_EN;
+	
 	/* INIT GPIO */
 	GPIO_InitPin(GPIO_PORTA,GPIO_PIN_09,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);  //TX
+	
+	/* ENABLE APB1 */
+	RCC->APB2ENR |= RCC_USART3_MASK_EN;
+	
+// --------------------------------------------------------------------------------------
+
+	/* 	 DMA CLOCK enable */
+ 	RCC->AHBENR |= DMA1_EN;
+	USART3->CR3 |= DMAT_EN;
+
+	My_DMA->CCRx &=~  (1<<0);
+	
+	// Number of bytes to transfer.
+	My_DMA->CNDTRx = 1;
+
+	My_DMA->CCRx |= MINC_EN | 
+					// CIRC_EN | 
+					DIR_EN | 
+					TCIE_EN;
+
+	// Peripheral address
+	My_DMA->CPARx = (uint32_t)& USART3->DR;
+	// Memory Address
+	My_DMA->CMARx = (uint32_t)&myar;
+// --------------------------------------------------------------------------------------
 
 	/* Set Config */
 	USART3->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV )234.375 = ( 8000000/(16*9600) ) 52( 0x34 ) 0.375*16 ( 0x6 )
-	USART3->CR1 |= (1 << 3)|(1<<2);
-	USART3->CR1 |= (1 << 13);  //TX ENABLE === USART Enable
+	USART3->CR1 |= TE_EN;
+	USART3->CR1 |= UE_EN;  //TX ENABLE === USART Enable
+
 }
+void DMA_START(void)
+{
+	My_DMA->CCRx |=  (1<<0);
+}
+void DMA_STOP(void)
+{
+	My_DMA->CCRx &=~  (1<<0);
+}
+
 void USART3_Send(char TX)
 {
 	USART3->DR = TX;

@@ -6,7 +6,6 @@
 #include "flash_wrapper.h"
 #include "uart.h"
 #include "dma.h"
-#include "xmodem.h"
 #include "spi.h"
 #include "btld.h"
 #include "i2c.h"
@@ -22,7 +21,6 @@ STK_type *STK = (STK_type*) STK_BASE_ADD;
 EXTI_t *EXTI = (EXTI_t*) EXTI_BASE_ADD;
 AFO_type *AFIO = (AFO_type*) AFIO_BASE_ADD;
 // DMA_t *DMA = (DMA_t*) DMA_1_BASE_ADDRESS;
-XModemPacket_t Packet_Arr[25];
 
 uint8_t FF = 0x00U;
 int Sec1, Sec2 = 0, Min1 = 5, Min2 = 2;
@@ -38,8 +36,14 @@ int main( void )
 
     SERIAL_Print("\n================== MAIN ====================\n");
 
+    DMA_START();
     while ( 1 )
     {
+        // if(*((volatile uint32_t*)(DMA_BASE_ADDRESS+0x4)) & (1<<13))
+        // {
+        //     DMA_STOP();
+        //     *((volatile uint32_t*)(DMA_BASE_ADDRESS+0x4)) &=~ (1<<13);
+        // }
         /*Do Nothing*/
         ;
     }

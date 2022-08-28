@@ -16,15 +16,15 @@ typedef struct
 
 typedef struct
 {
-	uint32_t CCR;
-	uint32_t CNDTR;
-	uint32_t CPAR;
-	uint32_t CMAR;
+	uint32_t CCRx;
+	uint32_t CNDTRx;
+	uint32_t CPARx;
+	uint32_t CMARx;
 	uint32_t RESERVED;
 }DMA_Channel_t;
 
 #define DMA_BASE_ADDRESS	0x40020000
-#define DMA_1_BASE_OFFSET	(DMA_BASE_ADDRESS + 0x8)
+#define DMA_1_BASE_OFFSET_CHANNEL4	(DMA_BASE_ADDRESS + 0x44)
 void DMA_Init(void);
 
 #endif /* DMA_H_ */

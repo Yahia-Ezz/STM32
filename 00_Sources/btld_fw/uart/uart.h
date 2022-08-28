@@ -33,7 +33,8 @@ typedef struct
 #define USART3_RXNE_MASK		0x00000020
 
 
-
+void DMA_STOP(void);
+void DMA_START(void);
 void USART3_INIT(void);
 void USART3_Send(char TX);
 void SERIAL_Print(char* fmt, ... );
