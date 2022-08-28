@@ -11,12 +11,10 @@ extern uint32_t _bss_end;
 
 
 extern void SPI_2_Handler(void);
-extern void I2C_1_Handler(void);
-
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
 {
 
-	(uint32_t*) 0x20005000,			// Main stack pointer
+	(uint32_t*) 0x20001800,			// Main stack pointer
 	(uint32_t*) startup_func,		// Reset Handler
 	0,								// Non Maskable Interrupts
 	0,								// Hard Fault
@@ -31,14 +29,14 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// Debug Monitor
 	0,	// RESERVED
 	0,								// PendSV
-	(uint32_t*) SysTick_Handler,	// SysTick
+	0,	// SysTick
 	0,								// WWDG
 	0,								// PVD
 	0,								// TAMPER
 	0,								// RTC
 	0,								// FLASH
 	0,								// RCC
-	(uint32_t*) EXTI0_Handler,		// EXTI0
+	0,		// EXTI0
 	0,								// EXTI1
 	0,								// EXTI2
 	0,								// EXTI3
@@ -63,52 +61,18 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// TIM2
 	0,								// TIM3
 	0,								// TIM4
-	(uint32_t *)I2C_1_Handler,		// I2C1_EV
+	0,		// I2C1_EV
 	0,								// I2C1_ER
 	0,								// I2C2_EV
 	0,								// I2C2_ER
 	0,								// SPI1
-	(uint32_t*)SPI_2_Handler        // SPI2
+	0        // SPI2
 };
 RCC_t *RCC =(RCC_t*)RCC_BASE_ADD;
 
 void startup_func(void)
 {
 	volatile uint32_t *SRC, *DEST;
-
-	/* Enable HSE */
-//	RCC->CR = 0x00014883;
-//	 RCC->CR |= (1U<<16) ;        // HSE ON                     <==== CAN"T USE IT HERE CUZ THE STACK ISN"T INITIALIZED YET.
-	*((volatile uint32_t*)0x40021000) |= (1U<<16);
-	while (!(*((volatile uint32_t*)0x40021000) & (1 << 17)))
-	{
-		;
-	}
-	*((volatile uint32_t*)0x40021000) &=~ (1<<24) ;        // PLL OFF
-	while ((*((volatile uint32_t*)0x40021000) & (1 << 25)))
-	{
-		;
-	}
-	*((volatile uint32_t*)0x40021004) &=~ (1U<<17);     // HSE clock Not Divded
-	*((volatile uint32_t*)0x40021004) &=~ ((1U<<8)|(1U<<9));     // HSE clock Not Divded
-//	*((volatile uint32_t*)0x40021004) |= (1U<<10);     // APB1 Clk / 2 ( Max 36 Mhz ) Input 40Mhz  clock Not Divided (20Mhz Current)
-	*((volatile uint32_t*)0x40021004) |= (1U<<19);     // Set PLLMUL to x4
-	*((volatile uint32_t*)0x40021004) |= (1U<<16);      // Set PLLSRC to HSE
-
-
-
-	/* Enable PLLON */
-	*((volatile uint32_t*)0x40021000) |= (1<<24);
-	while (!(*((volatile uint32_t*)0x40021000) & (1 << 25)))
-	{
-		;
-	}
-	*((volatile uint32_t*)0x40021004) |= (1U<<1);       // select PLL as clock from SW
-
-
-	/* Turn off HSI*/
-	*((volatile uint32_t*)0x40021000)  &=~ (1<<0U);
-
 
 	/* Clear Non initialized Variables - Variables set to 0 and static variables */
 	for (DEST = &_bss_start; DEST < &_bss_end; DEST++)
