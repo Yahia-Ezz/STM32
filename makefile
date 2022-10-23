@@ -28,6 +28,7 @@ CFLAGS += -I$(Source_Folder)/btld_fw/scb
 CFLAGS += -I$(Source_Folder)/btld_fw/i2c
 CFLAGS += -I$(Source_Folder)/X_Modem
 CFLAGS += -I$(Source_Folder)/btld
+CFLAGS += -I$(Source_Folder)/Scheduler
 
 all: $(SRCS)
 	@echo -e "\n------%% Building %%------\n"  

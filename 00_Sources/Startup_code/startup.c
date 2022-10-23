@@ -10,7 +10,9 @@ extern uint32_t _bss_start;
 extern uint32_t _bss_end;
 
 
-extern void SPI_2_Handler(void);
+extern void SysTick_Handler(void);
+
+
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
 {
 
@@ -21,22 +23,22 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// MemManage		
 	0,								// BusFault
 	0,								// UsageFault
-	0,	// RESERVED
-	0,	// RESERVED
-	0,	// RESERVED
-	0,	// RESERVED
+	0,								// RESERVED
+	0,								// RESERVED
+	0,								// RESERVED
+	0,								// RESERVED
 	0,								// SVCall 			
 	0,								// Debug Monitor
-	0,	// RESERVED
+	0,								// RESERVED
 	0,								// PendSV
-	0,	// SysTick
+	(uint32_t*)SysTick_Handler,		// SysTick
 	0,								// WWDG
 	0,								// PVD
 	0,								// TAMPER
 	0,								// RTC
 	0,								// FLASH
 	0,								// RCC
-	0,		// EXTI0
+	0,								// EXTI0
 	0,								// EXTI1
 	0,								// EXTI2
 	0,								// EXTI3
@@ -61,14 +63,14 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// TIM2
 	0,								// TIM3
 	0,								// TIM4
-	0,		// I2C1_EV
+	0,								// I2C1_EV
 	0,								// I2C1_ER
 	0,								// I2C2_EV
 	0,								// I2C2_ER
 	0,								// SPI1
-	0        // SPI2
+	0       						// SPI2
 };
-RCC_t *RCC =(RCC_t*)RCC_BASE_ADD;
+
 
 void startup_func(void)
 {
