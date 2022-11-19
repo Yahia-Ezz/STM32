@@ -31,44 +31,44 @@ DBG_LST_t  DBG_LIST[] =
 };
 void SPI_RECEIVE(void)
 {
-    extern uint8_t SPI_RX_BUFFER[];
-    for(int i=0;i<SPI_BUFFER_SIZE;i++)
-    SERIAL_Print("0x%x  ",(uint8_t)SPI_RX_BUFFER[i]);
+    // extern uint8_t SPI_RX_BUFFER[];
+    // for(int i=0;i<SPI_BUFFER_SIZE;i++)
+    // //SERIAL_Print("0x%x  ",(uint8_t)SPI_RX_BUFFER[i]);
 }
 void PRINT_HI(void)
 {
-    SERIAL_Print("\nHI\n");
+    // //SERIAL_Print("\nHI\n");
 }
 
 void I2C_P(void)
 {
-    SERIAL_Print("Print\n");
-    SERIAL_Print("I2C CCR = 0x%x \n",I2C->CCR);
-    SERIAL_Print("I2C CR1 = 0x%x \n",I2C->CR1);
-    SERIAL_Print("I2C CR2 = 0x%x \n",I2C->CR2);
-    SERIAL_Print("I2C DR = 0x%x \n",I2C->DR);
-    SERIAL_Print("I2C OAR1 = 0x%x \n",I2C->OAR1);
-    SERIAL_Print("I2C OAR2 = 0x%x \n",I2C->OAR2);
-    SERIAL_Print("I2C TRISE = 0x%x \n",I2C->TRISE);
-    SERIAL_Print("I2C SR1 = 0x%x \n",(I2C->SR1&0xFFFF));
-    SERIAL_Print("I2C SR2 = 0x%x \n",(I2C->SR2*0xFFFF));
+    //SERIAL_Print("Print\n");
+    //SERIAL_Print("I2C CCR = 0x%x \n",I2C->CCR);
+    //SERIAL_Print("I2C CR1 = 0x%x \n",I2C->CR1);
+    //SERIAL_Print("I2C CR2 = 0x%x \n",I2C->CR2);
+    //SERIAL_Print("I2C DR = 0x%x \n",I2C->DR);
+    //SERIAL_Print("I2C OAR1 = 0x%x \n",I2C->OAR1);
+    //SERIAL_Print("I2C OAR2 = 0x%x \n",I2C->OAR2);
+    //SERIAL_Print("I2C TRISE = 0x%x \n",I2C->TRISE);
+    //SERIAL_Print("I2C SR1 = 0x%x \n",(I2C->SR1&0xFFFF));
+    //SERIAL_Print("I2C SR2 = 0x%x \n",(I2C->SR2*0xFFFF));
     I2C->SR1 &=~(1<<8);
 }
 void BTLD_CLI_Handler(void)
 {
     static uint8_t index = 0;
-    SERIAL_Print("\n\nProvided Functions\n");
-    SERIAL_Print("==================\n");
+    //SERIAL_Print("\n\nProvided Functions\n");
+    //SERIAL_Print("==================\n");
     for ( int i = 0 ; i < (sizeof(DBG_LIST) / sizeof(DBG_LIST[0])) ; i++ )
     {
-        SERIAL_Print("%d - %s \n", i, DBG_LIST[i].UserRequestDescription);
+        //SERIAL_Print("%d - %s \n", i, DBG_LIST[i].UserRequestDescription);
     }
-        SERIAL_Print(">>");
+        //SERIAL_Print(">>");
         index = 0 ;
     while(1)
     {
-        USART3_Receive(&BTLD_ReceiveBuffer[index]);
-        USART3_Send(BTLD_ReceiveBuffer[index]);
+        //USART3_Receive(&BTLD_ReceiveBuffer[index]);
+        //USART3_Send(BTLD_ReceiveBuffer[index]);
         if( BTLD_ReceiveBuffer[index] == '\r' )
         {
             BTLD_ReceiveBuffer[index] = '\0';
@@ -84,7 +84,7 @@ void BTLD_CLI_Handler(void)
                 BTLD_ReceiveBuffer[i]=0;
                 index=0;
             }
-            SERIAL_Print("\n>>");
+            //SERIAL_Print("\n>>");
         }
         else
         {

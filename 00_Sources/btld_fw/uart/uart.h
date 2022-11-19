@@ -34,9 +34,9 @@ typedef struct
 
 
 void DMA_STOP(void);
-void DMA_START(void);
+void DMA_START(uint32_t* y, uint16_t x);
 void USART3_INIT(void);
 void USART3_Send(char TX);
-void SERIAL_Print(char* fmt, ... );
 void USART3_Receive(uint8_t *Var);
 #endif /* UART_H_ */
+ 

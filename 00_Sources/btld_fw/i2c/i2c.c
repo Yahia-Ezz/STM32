@@ -91,7 +91,7 @@ extern void SERIAL_Print(char *fmt, ...);
 
 void I2C_1_Handler(void)
 {
-    SERIAL_Print("Handler I2C Interrupt Fired\n");
-    SERIAL_Print("I2C SR1 = 0x%x \n",I2C->SR1);
-    SERIAL_Print("I2C SR2 = 0x%x \n",I2C->SR2);
+    // SERIAL_Print("Handler I2C Interrupt Fired\n");
+    // SERIAL_Print("I2C SR1 = 0x%x \n",I2C->SR1);
+    // SERIAL_Print("I2C SR2 = 0x%x \n",I2C->SR2);
 }

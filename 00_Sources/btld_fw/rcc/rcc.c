@@ -8,3 +8,21 @@
 #include <stdint.h>
 #include "rcc.h"
 
+
+
+
+struct RCC_t* RCC = (struct RCC_t*)RCC_BASE_ADD;
+
+
+// void RCC_EnablePeriphClk(uint8_t Peripheral)
+// {
+//     if ( Peripheral > 40U)
+//     {
+//         RCC.ahbenr
+//     }
+//     else
+//     {
+
+//     }
+//     RCC
+// }

@@ -16,11 +16,11 @@ extern DMA_t *DMA;
 
 void DMA_Init(void)
 {
-	SERIAL_Print("Initializing DMA ... ") ;
+	// SERIAL_Print("Initializing DMA ... ") ;
 
 
 
 
 
-	SERIAL_Print("Done!\r\n") ;
+	// SERIAL_Print("Done!\r\n") ;
 }

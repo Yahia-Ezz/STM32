@@ -11,6 +11,7 @@ extern uint32_t _bss_end;
 
 
 extern void SysTick_Handler(void);
+extern void DMA1_CH4_Handler(void);
 
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
@@ -32,8 +33,8 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// RESERVED
 	0,								// PendSV
 	(uint32_t*)SysTick_Handler,		// SysTick
-	0,								// WWDG
-	0,								// PVD
+	0,								// WWDG				00
+	0,								// PVD				01
 	0,								// TAMPER
 	0,								// RTC
 	0,								// FLASH
@@ -46,7 +47,7 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// DMA1_Channel1
 	0,								// DMA1_Channel2
 	0,								// DMA1_Channel3
-	0,								// DMA1_Channel4
+	(uint32_t*)DMA1_CH4_Handler,	// DMA1_Channel4	14
 	0,								// DMA1_Channel5
 	0,								// DMA1_Channel6
 	0,								// DMA1_Channel7
