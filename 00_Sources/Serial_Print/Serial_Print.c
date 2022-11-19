@@ -5,9 +5,16 @@
 #include "gpio.h"
 #include "Serial_Print.h"
 
+typedef enum 
+{
+	BUSY = 0U,
+	IDLE,
+}Task_State;
+
 typedef struct 
 {
 	uint16_t CurrBuffIdx;
+	Task_State PrintState;
 	uint8_t TotalSavedData;
 	uint8_t CurrEmptySaveDataIdx;
 }Buffer_t;
@@ -18,13 +25,12 @@ typedef struct
 	uint8_t StrIdxStart;
 }String_Buffer_t;
 
-static volatile uint8_t Printingflag;
+static volatile Buffer_t BufferData;
 static volatile uint8_t CurrPrintIdx;
 static volatile uint16_t TotalBuffSize;
 static volatile uint8_t SerialPrintBuff[SERIAL_PRINT_BUFF_SIZE];
 static String_Buffer_t StringBufferData[SERIAL_PRINT_BUFF_QUEUE_SIZE];
 
-static volatile Buffer_t BuffData;
 
 
 static void Serial_Print_Task(void);
@@ -39,17 +45,17 @@ void Serial_Print_Init(void)
 {
 	SCH_AppendTaskToQueue(&Serial_Print_Task);
 
-	Printingflag = 0U;
 	CurrPrintIdx = 0U;
-	BuffData.CurrBuffIdx  = 0U;
-	BuffData.TotalSavedData  = 0U;
-	BuffData.CurrEmptySaveDataIdx  = 0U;
+	BufferData.PrintState = IDLE;
+	BufferData.CurrBuffIdx  = 0U;
+	BufferData.TotalSavedData  = 0U;
+	BufferData.CurrEmptySaveDataIdx  = 0U;
 	TotalBuffSize = SERIAL_PRINT_BUFF_SIZE;
 }
 void DMA1_CH4_Handler(void)
 {
-	Printingflag = 0U; 											// Clear Printing Flag
-	BuffData.TotalSavedData -= 1U;								// Remove the printed string from Total Queue number
+	BufferData.PrintState = IDLE; 								// Clear Printing Flag
+	BufferData.TotalSavedData -= 1U;							// Remove the printed string from Total Queue number
 	TotalBuffSize += StringBufferData[CurrPrintIdx].Size; 		// Add the printed string size from allowed space
 	if (CurrPrintIdx == (SERIAL_PRINT_BUFF_QUEUE_SIZE - 1U)) 	// Reset print index to next slot
 	{
@@ -66,10 +72,21 @@ void DMA1_CH4_Handler(void)
 
 static void Serial_Print_Task(void)
 {
-	if (BuffData.TotalSavedData > 0U && Printingflag == 0U )
+	switch (BufferData.PrintState)
 	{
-		DMA_START((uint32_t*)&SerialPrintBuff[StringBufferData[CurrPrintIdx].StrIdxStart], StringBufferData[CurrPrintIdx].Size);
+	case (BUSY):												//Do nothing
+	;break; 				
+	case (IDLE):												//Print Strings in Queue
+				if (BufferData.TotalSavedData > 0U)
+				{
+					BufferData.PrintState = BUSY;
+					DMA_START((uint32_t*)&SerialPrintBuff[StringBufferData[CurrPrintIdx].StrIdxStart], StringBufferData[CurrPrintIdx].Size);
+				}	
+	;break; 
+	
+	default:;		break;										//Do nothing
 	}
+	
 }
 
 void SERIAL_Print(char *fmt, ...)
@@ -116,7 +133,7 @@ void SERIAL_Print(char *fmt, ...)
 	va_end(lst);
 
 	if ( (((signed)TotalBuffSize - (signed)TempStrIdx) >= 0 )	&&
-		 (BuffData.TotalSavedData < (SERIAL_PRINT_BUFF_QUEUE_SIZE-2U)))
+		 (BufferData.TotalSavedData < (SERIAL_PRINT_BUFF_QUEUE_SIZE-2U)))
 	{
 		SerialPrint_AppendStrToBuffHandler(TempStrBuff,TempStrIdx);
 	}
@@ -194,17 +211,17 @@ static void FormatSpecifierHandler(char X, void * Var,uint16_t *TempCounter,uint
 
 static void SerialPrint_AppendStrToBuffHandler(uint8_t* StrPointer,uint8_t StrSize)
 {
-	uint8_t TempCDiff =0u;
+	uint8_t TempStrSizeDiff = 0U;
 
-	if((StrSize + BuffData.CurrBuffIdx)  > SERIAL_PRINT_BUFF_SIZE)
+	if ((StrSize + BufferData.CurrBuffIdx) > SERIAL_PRINT_BUFF_SIZE)
 	{
-		TempCDiff = SERIAL_PRINT_BUFF_SIZE - BuffData.CurrBuffIdx;
-		SerialPrint_AppendStrToBuff(StrPointer, TempCDiff, BuffData.CurrBuffIdx);
-		SerialPrint_AppendStrToBuff(StrPointer+TempCDiff, (StrSize - TempCDiff), 0U);
+		TempStrSizeDiff = (SERIAL_PRINT_BUFF_SIZE - BufferData.CurrBuffIdx);
+		SerialPrint_AppendStrToBuff(StrPointer, TempStrSizeDiff, BufferData.CurrBuffIdx);
+		SerialPrint_AppendStrToBuff((StrPointer+TempStrSizeDiff), (StrSize - TempStrSizeDiff), 0U);
 	}
 	else
 	{
-		SerialPrint_AppendStrToBuff(StrPointer,StrSize,BuffData.CurrBuffIdx);
+		SerialPrint_AppendStrToBuff(StrPointer,StrSize,BufferData.CurrBuffIdx);
 	}
 }
 static void SerialPrint_AppendStrToBuff(uint8_t* StrPointer,uint8_t StrSize,uint8_t StrStartIdx)
@@ -214,30 +231,30 @@ static void SerialPrint_AppendStrToBuff(uint8_t* StrPointer,uint8_t StrSize,uint
 
 	SerialPrint_IfCurrEmptySaveBuffIdxNeedsUpdate();
 
-	StringBufferData[BuffData.CurrEmptySaveDataIdx].StrIdxStart = StrStartIdx;
-	StringBufferData[BuffData.CurrEmptySaveDataIdx].Size = StrSize;
+	StringBufferData[BufferData.CurrEmptySaveDataIdx].StrIdxStart = StrStartIdx;
+	StringBufferData[BufferData.CurrEmptySaveDataIdx].Size = StrSize;
 
-	for (uint8_t i = 0U; i < StrSize; i++, BuffData.CurrBuffIdx++)
+	for (uint8_t i = 0U; i < StrSize; i++, BufferData.CurrBuffIdx++)
 	{
 		SerialPrint_IfCurrBuffIdxNeedsUpdate();
-		SerialPrintBuff[BuffData.CurrBuffIdx] = StrPointer[i];
+		SerialPrintBuff[BufferData.CurrBuffIdx] = StrPointer[i];
 	}
-	BuffData.CurrEmptySaveDataIdx++;
-	BuffData.TotalSavedData++;
+	BufferData.CurrEmptySaveDataIdx++;
+	BufferData.TotalSavedData++;
 	TotalBuffSize -= StrSize;
 }
 
 static void SerialPrint_IfCurrBuffIdxNeedsUpdate(void)
 {
-	if (BuffData.CurrBuffIdx == SERIAL_PRINT_BUFF_SIZE)
+	if (BufferData.CurrBuffIdx == SERIAL_PRINT_BUFF_SIZE)
 	{
-		BuffData.CurrBuffIdx = 0U;
+		BufferData.CurrBuffIdx = 0U;
 	}
 }
 static void SerialPrint_IfCurrEmptySaveBuffIdxNeedsUpdate(void)
 {
-	if (BuffData.CurrEmptySaveDataIdx == SERIAL_PRINT_BUFF_QUEUE_SIZE)
+	if (BufferData.CurrEmptySaveDataIdx == SERIAL_PRINT_BUFF_QUEUE_SIZE)
 	{
-		BuffData.CurrEmptySaveDataIdx = 0U;
+		BufferData.CurrEmptySaveDataIdx = 0U;
 	}
 }

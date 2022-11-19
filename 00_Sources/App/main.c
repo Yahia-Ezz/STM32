@@ -39,13 +39,13 @@ void ToggleLEDTask(void)
 {
     static int x =0 ;
     x++; 
-    if (x==50)
+    if (x==10)
     {
         
         GPIO_SetPin(GPIO_PORTC,GPIO_PIN_13,GPIO_LOW);
         SERIAL_Print("StringTestX\n");
     }
-    else if ( x == 100)
+    else if ( x == 20)
     {
         GPIO_SetPin(GPIO_PORTC,GPIO_PIN_13,GPIO_HIGH);
         x=0;
