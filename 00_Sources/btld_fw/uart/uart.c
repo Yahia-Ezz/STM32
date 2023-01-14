@@ -97,6 +97,7 @@ void USART3_INIT(void)
 	USARTX->CR1 |= TE_EN;
 	USARTX->CR1 |= UE_EN;  //TX ENABLE === USART Enable
 
+	/* Interrupt Enable for DMA1_CH4*/
 	*((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<14U);
 	*((volatile uint32_t*)0xE000E104) = (1<<5U);
 	
