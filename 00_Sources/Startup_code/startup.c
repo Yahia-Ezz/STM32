@@ -13,8 +13,6 @@ extern uint32_t _bss_end;
 extern void SysTick_Handler(void);
 extern void DMA1_CH4_Handler(void);
 
-extern void CAN_SCE_Handler(void);
-extern void CAN_RX1_Handler(void);
 extern void USB_LP_CAN_RX0_Handler(void);
 extern void USB_HP_CAN_TX_Handler(void);
 
@@ -59,8 +57,8 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// ADC1_2
 	(uint32_t*)USB_HP_CAN_TX_Handler,	// USB_HP_CAN_TX	19
 	(uint32_t*)USB_LP_CAN_RX0_Handler,	// USB_LP_CAN_RX0	20
-	(uint32_t*)CAN_RX1_Handler,		// CAN_RX1				21
-	(uint32_t*)CAN_SCE_Handler,		// CAN_SCE				22
+	0,								// CAN_RX1				21
+	0,								// CAN_SCE				22
 	0,								// EXTI9_5
 	0,								// TIM1_BRK
 	0,								// TIM1_UP

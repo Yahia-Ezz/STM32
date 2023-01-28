@@ -25,8 +25,11 @@ int main( void )
 
     // SERIAL_Print("\n 0xE000E100 = 0x%x  \n",*((uint32_t*)0xE000E100));
     // SERIAL_Print("\n 0xE000E104 = 0x%x  \n",*((uint32_t*)0xE000E104));
-    SERIAL_Print("\n ==== Scheduler Execution Started ==== \n");
     
+    SERIAL_Print("\n ==== New Main  ==== \n");
+    SERIAL_Print("\n ==== Scheduler Execution Started ==== \n");
+
+
     SCH_StartExecution();
 
 

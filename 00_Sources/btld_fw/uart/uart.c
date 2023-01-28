@@ -93,7 +93,8 @@ void USART3_INIT(void)
 // --------------------------------------------------------------------------------------
 
 	/* Set Config */
-	USARTX->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV )234.375 = ( 8000000/(16*9600) ) 52( 0x34 ) 0.375*16 ( 0x6 )
+	// USARTX->BRR = 0x341;// 8MHZ   9600 baud rate (FHz/16*baud )= DIV ) = ( 8000000/(16*9600) ) 52( 0x34 ) 0.0833*16 ( 0x1 )
+	USARTX->BRR = 0x45;// 8MHZ   115200 baud rate (FHz/16*baud )= DIV ) = ( 8000000/(16*115200) ) 4( 0x4 ) 0.34027*16 ( 0x5 )
 	USARTX->CR1 |= TE_EN;
 	USARTX->CR1 |= UE_EN;  //TX ENABLE === USART Enable
 

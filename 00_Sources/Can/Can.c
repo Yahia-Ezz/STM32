@@ -21,10 +21,18 @@
 #define SILM (1 << 31U)
 #define SLEEP (1 << 1U)
 #define IDE (1 << 2U)
+#define RTR (1 << 1U)
+#define SLAK (1 << 1U)
 #define TXRQ (1 << 0U)
 #define FINIT (1 << 0U)
+#define ABOM (1 << 6U)
+#define TXFP (1 << 2U)
+#define TRXQ (1 << 0U)
+#define TME0 (1 << 26U)
 
-#define CAN_MY_11_BIT_ID   0x555U
+#define EXID_CLEAR_MASK 0x1FFFF8
+
+#define CAN_MY_11_BIT_ID   0x707U
 #define CAN_BASE_ADDRESS   0x40006400U
 
 #define CAN_TRANSMIT_BOX_0_BASE_ADDRESS     (CAN_BASE_ADDRESS+0x180U)
@@ -109,6 +117,9 @@ volatile static CAN_FMR_t* CAN_FR = (CAN_FMR_t*)CAN_FILTER_BASE_ADDRESS;
 static void bxCAN_EnterInitMode(void);
 static void bxCAN_ExitInitMode(void);
 static void bxCAN_SendMessage(void);
+static void bxCAN_FilterInit(void);
+static void bxCAN_EnterFilterInitMode(void);
+static void bxCAN_ExitFilterInitMode(void);
 
 void bxCAN_MainTask(void);
 
@@ -125,7 +136,7 @@ void bxCAN_Init(void)
     RCC->APB1ENR |= CAN_EN ;
 
     GPIO_InitPin(GPIO_PORTA,GPIO_PIN_12,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);
-    GPIO_InitPin(GPIO_PORTA,GPIO_PIN_11,GPIO_INPUT,GPIO_ALTF_PUSH_PULL);
+    GPIO_InitPin(GPIO_PORTA,GPIO_PIN_11,GPIO_INPUT,GPIO_FLOATING);
 
 /*   
     !!!!!!!!!!!!! http://www.bittiming.can-wiki.info/ !!!!!!!!!!!!!!!!!!!
@@ -138,23 +149,21 @@ void bxCAN_Init(void)
     with:      tBS1 = tq x (TS1[3:0] + 1),    tBS2 = tq x (TS2[2:0] + 1),    tq = (BRP[9:0] + 1) x tPCLK    tPCLK = time period of the APB clock,
     BRP[9:0], TS1[3:0] and TS2[2:0] are defined in the CAN_BTR Register */
     
-    
-    
+    DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
+
+    bxCAN_FilterInit();
 
     bxCAN_EnterInitMode();
 
-    CAN_FR->FMR |= (0x1C << 9) ;
-    CAN_FR->FA1R |= (1<<0U) ;
-    CAN_FR->FS1R &=~ (1<<0U) ;
-    CAN_FR->FFA1R &=~ (1<<0U) ;
-    CAN_FR->FM1R = 0xFFFFFFF ;
-    *((volatile uint32_t*)CAN+0x240) = 0x555U ;
-    CAN->BTR |= 0x001C0000U; //500 Kbps @ 87.5% sampling
-    CAN->BTR |= LBKM | SILM;
-    CAN->MCR |= RFLM;
-    CAN->IER |= (1<<0);
+    CAN->BTR = (0x001C0000U | LBKM | SILM ) ; //500 Kbps @ 87.5% sampling
+    CAN->MCR |= ABOM | TXFP;    
+    CAN->IER |= (1<<1); //Receive ISR
+
     bxCAN_ExitInitMode();
     
+    DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
+
+    /* ISR Enable */
     *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<19U);
     *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<20U);
     *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<21U);
@@ -165,149 +174,126 @@ void bxCAN_Init(void)
     CurrentCAN_SM = CAN_INIT;
 }
 
+void checkifmessagereceived(void)
+{
+    if((CAN->RF0R & 0x3U) != 0U)
+    {
+        DEBUG_CAN("!!!!!!!!!!!!! \n");
+    }
+    else
+    {
+        DEBUG_CAN("Nothing received \n");
+    }
 
+}
 void bxCAN_MainTask(void)
 {
+    static int x = 0;
 
-switch (CurrentCAN_SM)
-{
+    switch (CurrentCAN_SM)
+    {
+        case (CAN_INIT):
+            CurrentCAN_SM = CAN_NORMAL;
+        break;
 
-case (CAN_INIT):
-    bxCAN_SendMessage();
-    CurrentCAN_SM = CAN_NORMAL;
-break;
+        case (CAN_NORMAL):
+            x++;
+            if (x == 100)
+            {
+                checkifmessagereceived();
+                DEBUG_CAN("\n=========\n");
+                x = 0;
+                bxCAN_SendMessage();
+            }
+            // CurrentCAN_SM = CAN_SLEEP;
+        break;
 
-case (CAN_NORMAL):
-    // CurrentCAN_SM = CAN_SLEEP;
-break;
+        case (CAN_SLEEP):
+            CurrentCAN_SM = 0x55;
+        break;
 
-case (CAN_SLEEP):
-    CurrentCAN_SM = 0x55;
-break;
-
-default:
-    break;
-}
-
+        default:
+        break;
+    }
 }
 
 static void bxCAN_SendMessage(void)
 {
-// In order to transmit a message, the application must 
-// - select one empty transmit mailbox, 
-// - set up the identifier, 
-// - the data length code (DLC) 
-// - the data before requesting the transmission 
-// by setting the corresponding TXRQ bit in the CAN_TIxR register. 
-    CAN_TX_0->TIxR |= (CAN_MY_11_BIT_ID << 21U );
-    CAN_TX_0->TIxR &=~ ( IDE | 0x1FFFF8);
-    CAN_TX_0->TDTxR |= 3U;
-    CAN_TX_0->TDLxR = 0x00A7A7A7;
-    CAN_TX_0->TDHxR = 0x00000000;
-    CAN_TX_0->TIxR |= TXRQ;
-    // Once the mailbox has left empty state, the software no longer has write access to the mailbox registers.
-    // Immediately  after the TXRQ bit has been set, the mailbox enters pending state and waits to become the
-    // highest priority mailbox, see Transmit Priority. As soon as the mailbox has the highest
-    // priority it will be scheduled for transmission. The transmission of the message of the
-    // scheduled mailbox will start (enter transmit state) when the CAN bus becomes idle. Once
-    // the mailbox has been successfully transmitted, it will become empty again. The hardware
-    // indicates a successful transmission by setting the RQCP and TXOK bits in the CAN_TSR
-    // register.
-    // If the transmission fails, the cause is indicated by the ALST bit in the CAN_TSR register in
-    // case of an Arbitration Lost, and/or the TERR bit, in case of transmission error detection.
-    // bxCAN
-    // CANTX CANRX
-    // Tx Rx
-    // =1
-    // RM0008 Rev 20 661/1134
-    // RM0008 Controller area network (bxCAN)
-    // 698
-    // Transmit priority
+    static int temp = 0;
 
-    // Abort
-    // A transmission request can be aborted by the user setting the ABRQ bit in the CAN_TSR
-    // register. In pending or scheduled state, the mailbox is aborted immediately. An abort
-    // request while the mailbox is in transmit state can have two results. If the mailbox is
-    // transmitted successfully the mailbox becomes empty with the TXOK bit set in the
-    // CAN_TSR register. If the transmission fails, the mailbox becomes scheduled, the
-    // transmission is aborted and becomes empty with TXOK cleared. In all cases the mailbox
-    // will become empty again at least at the end of the current transmission.
-    // Nonautomatic retransmission mode
-    // This mode has been implemented in order to fulfil the requirement of the Time Triggered
-    // Communication option of the CAN standard. To configure the hardware in this mode the
-    // NART bit in the CAN_MCR register must be set.
-    // In this mode, each transmission is started only once. If the first attempt fails, due to an
-    // arbitration loss or an error, the hardware will not automatically restart the message
-    // transmission.
-    // At the end of the first transmission attempt, the hardware considers the request as
-    // completed and sets the RQCP bit in the CAN_TSR register. The result of the transmission is
-    // indicated in the CAN_TSR register by the TXOK, ALST and TERR bits.
-    // By identifier When more than one transmit mailbox is pending, the
-    // transmission order is given by the identifier of the message
-    // stored in the mailbox. The message with the lowest identifier
-    // value has the highest priority according to the arbitration of the
-    // CAN protocol. If the identifier values are equal, the lower mailbox
-    // number will be scheduled first.
-    // By transmit request order The transmit mailboxes can be configured as a transmit FIFO by
-    // setting the TXFP bit in the CAN_MCR register. In this mode the
-    // priority order is given by the transmit request order. This mode is
-    // very useful for segmented transmission.
-
+    CAN_TX_0->TIxR = 0x000000U;
+    CAN_TX_0->TIxR |= (CAN_MY_11_BIT_ID << 21U );           // STID [10:0] 21->31 bits
+    // CAN_TX_0->TIxR &=~ ( IDE | RTR | EXID_CLEAR_MASK );
+    CAN_TX_0->TDTxR = 0U;                                  // DLC = 8
+    CAN_TX_0->TDTxR |= 0x8U;                                  // DLC = 8
+    CAN_TX_0->TDLxR = temp;
+    CAN_TX_0->TDHxR = 0;
+    if( CAN->TSR & TME0 )   // CHECK if Transmit box 0 is not pending 
+    {
+        CAN_TX_0->TIxR |= TXRQ;
+    }
 }
 
 
 void USB_HP_CAN_TX_Handler(void)
 {
     SERIAL_Print("\n 1\n");
-    SERIAL_Print("\n 1\n");
-    SERIAL_Print("\n 1\n");
-    SERIAL_Print("\n 1\n");
-    while(1);
+    // while(1);
 }
 
 void USB_LP_CAN_RX0_Handler(void)
 {
     SERIAL_Print("\n 2\n");
-    SERIAL_Print("\n 2\n");
-    SERIAL_Print("\n 2\n");
-    SERIAL_Print("\n 2\n");
-    while(1);
+    // while(1);
 }
 
-void CAN_RX1_Handler(void)
-{
-    SERIAL_Print("\n 3\n");
-    SERIAL_Print("\n 3\n");
-    SERIAL_Print("\n 3\n");
-    SERIAL_Print("\n 3\n");
-    SERIAL_Print("\n 3\n");
-    while(1);
-}
-
-void CAN_SCE_Handler(void)
-{
-    SERIAL_Print("\n 4\n");
-    SERIAL_Print("\n 4\n");
-    SERIAL_Print("\n 4\n");
-    SERIAL_Print("\n 4\n");
-    SERIAL_Print("\n 4\n");
-    SERIAL_Print("\n 4\n");
-    while(1);
-}
 
 
 static void bxCAN_EnterInitMode(void)
 {
-    CAN_FR->FMR &=~ FINIT;
     CAN->MCR &= ~SLEEP;
     CAN->MCR |= INRQ;
-    while (!(CAN->MSR & INAK));
+    while ((!(CAN->MSR & INAK)) || (CAN->MSR & SLAK));
 }
 
 static void bxCAN_ExitInitMode(void)
 {
-    CAN_FR->FMR |= FINIT;
-    CAN->MCR &= ~SLEEP;
-    CAN->MCR &=~ INRQ;   
+    CAN->MCR &=~ (INRQ|SLEEP);   
     while ((CAN->MSR & INAK));
+}
+
+static void bxCAN_EnterFilterInitMode(void)
+{
+    CAN_FR->FMR |= FINIT;
+}
+
+static void bxCAN_ExitFilterInitMode(void)
+{
+    CAN_FR->FMR &=~ FINIT;
+}
+
+static void bxCAN_FilterInit(void)
+{
+    bxCAN_EnterFilterInitMode();
+    
+    /* ALL filters to CAN1 can be used */
+    CAN_FR->FMR |= (0x1C << 8U);    
+
+    /* Mask Mode (X) vs  List mode (Y) <-- Must all match */
+    CAN_FR->FM1R |= (1U << 0U);  
+    
+    /* 16 (Y) vs 32 (X) bit scale config */
+    CAN_FR->FS1R &=~ (1U << 0U);   
+
+    /* Messages going to FIFO0 */
+    CAN_FR->FFA1R &= ~(1U << 0U);   
+
+    CAN_FR->FA1R &= ~(1U << 0U);    // FIlter 0 Init mode
+
+    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) = (CAN_MY_11_BIT_ID<<21) ;
+    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x244)) = (CAN_MY_11_BIT_ID<<21) ;
+
+    CAN_FR->FA1R |= (1<<0U) ;       // FIlter 0 active
+
+    bxCAN_ExitFilterInitMode();
 }
