@@ -30,6 +30,8 @@ CFLAGS += -I$(Source_Folder)/X_Modem
 CFLAGS += -I$(Source_Folder)/btld
 CFLAGS += -I$(Source_Folder)/Scheduler
 CFLAGS += -I$(Source_Folder)/Serial_Print
+CFLAGS += -I$(Source_Folder)/Can
+CFLAGS += -D$(MYARG)
 
 all: $(SRCS)
 	@echo -e "\n------%% Building %%------\n"  

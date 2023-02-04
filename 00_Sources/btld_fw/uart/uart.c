@@ -10,6 +10,7 @@
 #include "gpio.h"
 #include "dma.h"
 #include "rcc.h"
+#include "nvic.h"
 #include "uart.h"
 
 extern RCC_t *RCC;
@@ -76,12 +77,10 @@ void USART3_INIT(void)
 
 	/* 	 DMA CLOCK enable */
  	RCC->AHBENR |= DMA1_EN;
+	
 	USARTX->CR3 |= DMAT_EN;
-
 	My_DMA->CCRx &=~  (1<<0);
 	
-
-
 	My_DMA->CCRx |= MINC_EN | 
 					// CIRC_EN | 
 					DIR_EN | 
@@ -99,11 +98,11 @@ void USART3_INIT(void)
 	USARTX->CR1 |= UE_EN;  //TX ENABLE === USART Enable
 
 	/* Interrupt Enable for DMA1_CH4*/
-	*((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<14U);
-	*((volatile uint32_t*)0xE000E104) = (1<<5U);
-	
+	NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+	NVIC_EnableIRQ(USART3_IRQn);
 
 }
+
 void DMA_START(uint32_t* y, uint16_t x)
 {
 	// Number of bytes to transfer.

@@ -16,7 +16,7 @@
 I2C_t *I2C = (I2C_t*)I2C_BASE_ADDRESS;
 
 extern RCC_t *RCC;
-extern NVIC_t *NVIC;
+extern NVIC_CR_t *NVIC;
 
 
 void I2C_1_Init(void)

@@ -3,6 +3,7 @@
 #include "rcc.h"
 #include "Serial_Print.h"
 #include "SCH.h"
+#include "nvic.h"
 #include "Can.h"
 
 
@@ -28,11 +29,13 @@
 #define ABOM (1 << 6U)
 #define TXFP (1 << 2U)
 #define TRXQ (1 << 0U)
+#define RESET (1 << 15U)
 #define TME0 (1 << 26U)
+#define FMPIE0 (1 << 1)
 
 #define EXID_CLEAR_MASK 0x1FFFF8
 
-#define CAN_MY_11_BIT_ID   0x707U
+#define CAN_MY_11_BIT_ID   0x7FFU
 #define CAN_BASE_ADDRESS   0x40006400U
 
 #define CAN_TRANSMIT_BOX_0_BASE_ADDRESS     (CAN_BASE_ADDRESS+0x180U)
@@ -52,26 +55,39 @@
 #define STD_ON      1U
 #define STD_OFF     0U
 
-#define DEBUG_CAN_ON   STD_ON
+#define DEBUG_CAN_STATE   STD_ON
 
-#if DEBUG_CAN_ON == STD_ON
+#if DEBUG_CAN_STATE == STD_ON
 #define DEBUG_CAN SERIAL_Print
 #else
 #define DEBUG_CAN
 #endif
+
 extern RCC_t *RCC;
 
 typedef struct 
 {
-    uint32_t MCR;
-    uint32_t MSR;
-    uint32_t TSR;
-    uint32_t RF0R;  //CAN receive FIFO 0 register
-    uint32_t RF1R;  //CAN receive FIFO 1 register
-    uint32_t IER;  //CAN interrupt enable register
-    uint32_t ESR;
-    uint32_t BTR;
+    uint32_t MCR;   //CAN Control register
+    uint32_t MSR;   //CAN Status register
+    uint32_t TSR;   //CAN Transmit status register
+    uint32_t RF0R;  //CAN Receive FIFO 0 register
+    uint32_t RF1R;  //CAN Receive FIFO 1 register
+    uint32_t IER;   //CAN Interrupt enable register
+    uint32_t ESR;   //CAN Error status register
+    uint32_t BTR;   //CAN Bit timing register
 }CAN_t;
+
+typedef struct 
+{
+    uint32_t FMR;
+    uint32_t FM1R;
+    uint32_t RESERVED_0;
+    uint32_t FS1R;
+    uint32_t RESERVED_1;
+    uint32_t FFA1R;
+    uint32_t RESERVED_2;
+    uint32_t FA1R;
+}CAN_FMR_t;
 
 typedef struct 
 {
@@ -89,14 +105,7 @@ typedef struct
     uint32_t RDHxR;
 }CAN_RX_t;
 
-typedef struct 
-{
-    uint32_t FMR;
-    uint32_t FM1R;
-    uint32_t FS1R;
-    uint32_t FFA1R;
-    uint32_t FA1R;
-}CAN_FMR_t;
+
 
 typedef enum 
 {
@@ -107,19 +116,16 @@ typedef enum
 
 volatile static Can_SM_t CurrentCAN_SM = CAN_INIT;
 volatile static CAN_TX_t * CAN_TX_0 = (CAN_TX_t *)CAN_TRANSMIT_BOX_0_BASE_ADDRESS;
+volatile static CAN_RX_t * CAN_RX_0 = (CAN_RX_t *)CAN_RECEIVE_BOX_0_BASE_ADDRESS;
 volatile static CAN_t* CAN = (CAN_t*)CAN_BASE_ADDRESS;
-volatile static CAN_FMR_t* CAN_FR = (CAN_FMR_t*)CAN_FILTER_BASE_ADDRESS;
+volatile CAN_FMR_t* CAN_FR = (CAN_FMR_t*)CAN_FILTER_BASE_ADDRESS;
 
+
+extern NVIC_CR_t *NVIC;
 
 /* CAN 1 → 11 bit Identifier */
 /* CAN 2 → 29 bit Identifier */
 
-static void bxCAN_EnterInitMode(void);
-static void bxCAN_ExitInitMode(void);
-static void bxCAN_SendMessage(void);
-static void bxCAN_FilterInit(void);
-static void bxCAN_EnterFilterInitMode(void);
-static void bxCAN_ExitFilterInitMode(void);
 
 void bxCAN_MainTask(void);
 
@@ -132,10 +138,27 @@ void bxCAN_MainTask(void);
  */
 void bxCAN_Init(void)
 {
-    RCC->APB2ENR |= IOPA_EN;
+    /* Enable CAN Peripheral Clock */
     RCC->APB1ENR |= CAN_EN ;
 
+    /* Force a CAN reset */
+    CAN->MCR |= RESET;
+    /* Wait till CAN enters sleep mode */
+    while (!(CAN->MSR & SLAK));
+
+    /* Request Initialization Mode */
+    CAN->MCR &=~ SLEEP;
+    CAN->MCR |= INRQ;
+
+    /* Wait for request initialization mode transition*/
+    while (!(CAN->MSR & INAK) || (CAN->MSR & SLAK)) ;
+
+    /* Initialize CAN TX and RX Pins and port clock */
+    RCC->APB2ENR |= IOPA_EN;
+
+    /* CAN_TX (Transmit data line) Alternate function push-pull */
     GPIO_InitPin(GPIO_PORTA,GPIO_PIN_12,GPIO_OUTPUT_50MHZ,GPIO_ALTF_PUSH_PULL);
+    /* CAN_RX (Receive data line) Input floating / Input pull-up */
     GPIO_InitPin(GPIO_PORTA,GPIO_PIN_11,GPIO_INPUT,GPIO_FLOATING);
 
 /*   
@@ -150,42 +173,61 @@ void bxCAN_Init(void)
     BRP[9:0], TS1[3:0] and TS2[2:0] are defined in the CAN_BTR Register */
     
     DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
-
-    bxCAN_FilterInit();
-
-    bxCAN_EnterInitMode();
-
-    CAN->BTR = (0x001C0000U | LBKM | SILM ) ; //500 Kbps @ 87.5% sampling
-    CAN->MCR |= ABOM | TXFP;    
-    CAN->IER |= (1<<1); //Receive ISR
-
-    bxCAN_ExitInitMode();
     
+    /* 
+        Set baurd to 1Mbps 
+        Set Loop back mode -> TX transmitted messages treated as received messages and stored
+        Set Silent Mode -> No TX sent on Bus only internally
+    */
+    CAN->BTR = ( 0x00050000 |  \
+                 LBKM       |  
+                 SILM 
+                );
+
+    CAN_FR->FMR = ((28U<<8U) | \
+                   FINIT) ;
+
+    /* FBM MASK (1) LIST (0) */
+    CAN_FR->FM1R &=~ (1<<0);
+    
+    /* 16 bits (0)  32bit(1)*/
+    CAN_FR->FS1R &=~ (1<<0);
+
+    /* FIFO0 (0) FIFO1(1) */
+    CAN_FR->FFA1R &=~ (1<<0);
+    
+    /* Deactivate Fitler */
+    CAN_FR->FA1R &=~ (1<<0);
+    
+    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) = 0x00000000;
+    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) |= (CAN_MY_11_BIT_ID<<5) ;
+
+    /* Enable Fitler */
+    CAN_FR->FA1R |= (1<<0);
+
+    /* Exit Filter initMode */
+    CAN_FR->FMR &=~ FINIT;
+
+    CAN->IER |= FMPIE0;
+
+    /* Exit Init Mode */
+    CAN->MCR &=~ INRQ;
+
+    while((CAN->MSR & INAK));
+
     DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
 
     /* ISR Enable */
-    *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<19U);
-    *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<20U);
-    *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<21U);
-    *((volatile uint32_t*)0xE000E100) =(uint32_t) (1<<22U);
-    
+    NVIC_EnableIRQ(USB_HP_CAN_TX_IRQn);
+    NVIC_EnableIRQ(USB_LP_CAN_RX0_IRQn);
+    NVIC_EnableIRQ(CAN_RX1_IRQn);
+
     SCH_AppendTaskToQueue(&bxCAN_MainTask);
 
     CurrentCAN_SM = CAN_INIT;
 }
 
-void checkifmessagereceived(void)
-{
-    if((CAN->RF0R & 0x3U) != 0U)
-    {
-        DEBUG_CAN("!!!!!!!!!!!!! \n");
-    }
-    else
-    {
-        DEBUG_CAN("Nothing received \n");
-    }
-
-}
+uint32_t TempCounter =0U;
 void bxCAN_MainTask(void)
 {
     static int x = 0;
@@ -198,12 +240,38 @@ void bxCAN_MainTask(void)
 
         case (CAN_NORMAL):
             x++;
+            
             if (x == 100)
             {
-                checkifmessagereceived();
+
+
+// #ifdef RECEIVER
+                DEBUG_CAN("\n Received Data 0 = 0x%x\n", CAN_RX_0->RIxR);
+                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDTxR);
+                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDLxR);
+                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDHxR);
                 DEBUG_CAN("\n=========\n");
+// #endif
+// #ifdef SENDER
+                /* Check If Transmit box0 is empty */
+                if((CAN->TSR & TME0))
+                {
+                    CAN_TX_0->TIxR = 0x00000000;
+                    CAN_TX_0->TIxR |= (CAN_MY_11_BIT_ID << 21);
+
+                    /* DLC = 8  */
+                    CAN_TX_0->TDTxR = 0x00000000;
+                    CAN_TX_0->TDTxR |= 8;
+
+                    CAN_TX_0->TDLxR = TempCounter;
+                    CAN_TX_0->TDHxR = 0xabcdefaa;
+
+                    CAN_TX_0->TIxR |= TXRQ;
+                    
+                }
+// #endif
+
                 x = 0;
-                bxCAN_SendMessage();
             }
             // CurrentCAN_SM = CAN_SLEEP;
         break;
@@ -217,83 +285,28 @@ void bxCAN_MainTask(void)
     }
 }
 
-static void bxCAN_SendMessage(void)
-{
-    static int temp = 0;
-
-    CAN_TX_0->TIxR = 0x000000U;
-    CAN_TX_0->TIxR |= (CAN_MY_11_BIT_ID << 21U );           // STID [10:0] 21->31 bits
-    // CAN_TX_0->TIxR &=~ ( IDE | RTR | EXID_CLEAR_MASK );
-    CAN_TX_0->TDTxR = 0U;                                  // DLC = 8
-    CAN_TX_0->TDTxR |= 0x8U;                                  // DLC = 8
-    CAN_TX_0->TDLxR = temp;
-    CAN_TX_0->TDHxR = 0;
-    if( CAN->TSR & TME0 )   // CHECK if Transmit box 0 is not pending 
-    {
-        CAN_TX_0->TIxR |= TXRQ;
-    }
-}
 
 
 void USB_HP_CAN_TX_Handler(void)
 {
-    SERIAL_Print("\n 1\n");
+    // SERIAL_Print("\n 1\n");
     // while(1);
 }
 
 void USB_LP_CAN_RX0_Handler(void)
 {
-    SERIAL_Print("\n 2\n");
-    // while(1);
+    TempCounter++;
+    /* Release Mail box */
+    CAN->RF0R |= (1 << 5);
 }
 
-
-
-static void bxCAN_EnterInitMode(void)
+void CAN_RX1_Handler(void)
 {
-    CAN->MCR &= ~SLEEP;
-    CAN->MCR |= INRQ;
-    while ((!(CAN->MSR & INAK)) || (CAN->MSR & SLAK));
+
 }
 
-static void bxCAN_ExitInitMode(void)
+void CAN_SCE_Handler(void)
 {
-    CAN->MCR &=~ (INRQ|SLEEP);   
-    while ((CAN->MSR & INAK));
-}
 
-static void bxCAN_EnterFilterInitMode(void)
-{
-    CAN_FR->FMR |= FINIT;
-}
 
-static void bxCAN_ExitFilterInitMode(void)
-{
-    CAN_FR->FMR &=~ FINIT;
-}
-
-static void bxCAN_FilterInit(void)
-{
-    bxCAN_EnterFilterInitMode();
-    
-    /* ALL filters to CAN1 can be used */
-    CAN_FR->FMR |= (0x1C << 8U);    
-
-    /* Mask Mode (X) vs  List mode (Y) <-- Must all match */
-    CAN_FR->FM1R |= (1U << 0U);  
-    
-    /* 16 (Y) vs 32 (X) bit scale config */
-    CAN_FR->FS1R &=~ (1U << 0U);   
-
-    /* Messages going to FIFO0 */
-    CAN_FR->FFA1R &= ~(1U << 0U);   
-
-    CAN_FR->FA1R &= ~(1U << 0U);    // FIlter 0 Init mode
-
-    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) = (CAN_MY_11_BIT_ID<<21) ;
-    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x244)) = (CAN_MY_11_BIT_ID<<21) ;
-
-    CAN_FR->FA1R |= (1<<0U) ;       // FIlter 0 active
-
-    bxCAN_ExitFilterInitMode();
 }

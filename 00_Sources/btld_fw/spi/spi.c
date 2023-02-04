@@ -12,7 +12,7 @@
 #include "nvic.h"
 
 extern RCC_t *RCC;
-extern NVIC_t *NVIC;
+extern NVIC_CR_t *NVIC;
 
 SPI_t*SPI_2 = (SPI_t*) SPI_BASE_ADDRESS;
 
