@@ -172,17 +172,17 @@ void bxCAN_Init(void)
     with:      tBS1 = tq x (TS1[3:0] + 1),    tBS2 = tq x (TS2[2:0] + 1),    tq = (BRP[9:0] + 1) x tPCLK    tPCLK = time period of the APB clock,
     BRP[9:0], TS1[3:0] and TS2[2:0] are defined in the CAN_BTR Register */
     
-    DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
+    // DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
     
     /* 
         Set baurd to 1Mbps 
         Set Loop back mode -> TX transmitted messages treated as received messages and stored
         Set Silent Mode -> No TX sent on Bus only internally
     */
-    CAN->BTR = ( 0x00050000 |  \
-                 LBKM       |  
-                 SILM 
-                );
+    CAN->BTR = ( 0x00050000     \
+                // |  LBKM         \
+                // |  SILM         
+               );
 
     CAN_FR->FMR = ((28U<<8U) | \
                    FINIT) ;
@@ -199,8 +199,7 @@ void bxCAN_Init(void)
     /* Deactivate Fitler */
     CAN_FR->FA1R &=~ (1<<0);
     
-    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) = 0x00000000;
-    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) |= (CAN_MY_11_BIT_ID<<5) ;
+    *((volatile uint32_t*)(CAN_BASE_ADDRESS+0x240)) = (CAN_MY_11_BIT_ID<<5) ;
 
     /* Enable Fitler */
     CAN_FR->FA1R |= (1<<0);
@@ -215,7 +214,7 @@ void bxCAN_Init(void)
 
     while((CAN->MSR & INAK));
 
-    DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
+    // DEBUG_CAN("\n MSR = 0x%x\n",CAN->MSR);
 
     /* ISR Enable */
     NVIC_EnableIRQ(USB_HP_CAN_TX_IRQn);
@@ -226,8 +225,7 @@ void bxCAN_Init(void)
 
     CurrentCAN_SM = CAN_INIT;
 }
-
-uint32_t TempCounter =0U;
+int TempCounter =0;
 void bxCAN_MainTask(void)
 {
     static int x = 0;
@@ -243,34 +241,29 @@ void bxCAN_MainTask(void)
             
             if (x == 100)
             {
-
-
-// #ifdef RECEIVER
+#ifdef RECEIVER
                 DEBUG_CAN("\n Received Data 0 = 0x%x\n", CAN_RX_0->RIxR);
                 DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDTxR);
                 DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDLxR);
                 DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDHxR);
                 DEBUG_CAN("\n=========\n");
-// #endif
-// #ifdef SENDER
+#endif
+#ifdef SENDER
                 /* Check If Transmit box0 is empty */
                 if((CAN->TSR & TME0))
                 {
-                    CAN_TX_0->TIxR = 0x00000000;
-                    CAN_TX_0->TIxR |= (CAN_MY_11_BIT_ID << 21);
+                    CAN_TX_0->TIxR = (CAN_MY_11_BIT_ID << 21);
 
                     /* DLC = 8  */
-                    CAN_TX_0->TDTxR = 0x00000000;
-                    CAN_TX_0->TDTxR |= 8;
+                    CAN_TX_0->TDTxR = 8;
 
-                    CAN_TX_0->TDLxR = TempCounter;
-                    CAN_TX_0->TDHxR = 0xabcdefaa;
+                    CAN_TX_0->TDLxR = TempCounter++;
+                    CAN_TX_0->TDHxR = 0x66666666;
 
                     CAN_TX_0->TIxR |= TXRQ;
                     
                 }
-// #endif
-
+#endif
                 x = 0;
             }
             // CurrentCAN_SM = CAN_SLEEP;
@@ -295,7 +288,6 @@ void USB_HP_CAN_TX_Handler(void)
 
 void USB_LP_CAN_RX0_Handler(void)
 {
-    TempCounter++;
     /* Release Mail box */
     CAN->RF0R |= (1 << 5);
 }
