@@ -11,14 +11,14 @@ IF /I %1 == Receiver ( goto :Receiver ) ELSE (  goto :MissingArgument )
 
 echo Sender Script Initiaited!
 CALL Build_app.bat SENDER
-CALL Flash_app.bat 1
+CALL Flash_app.bat 0
 exit /b
  
 :Receiver
 
 echo Receiver Script Initiaited!
 CALL Build_app.bat RECEIVER
-CALL Flash_app.bat 0
+CALL Flash_app.bat 1
 
 exit /b
 

@@ -17,6 +17,7 @@ extern void CAN_SCE_Handler(void);
 extern void CAN_RX1_Handler(void);
 extern void USB_LP_CAN_RX0_Handler(void);
 extern void USB_HP_CAN_TX_Handler(void);
+extern void SPIx_ReceiveByte(void);
 
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
@@ -73,7 +74,7 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// I2C1_ER			// 0 ISER1
 	0,								// I2C2_EV
 	0,								// I2C2_ER
-	0,								// SPI1
+	(uint32_t*)SPIx_ReceiveByte,	// SPI1
 	0       						// SPI2
 };
 

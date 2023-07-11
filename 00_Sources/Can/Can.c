@@ -242,27 +242,27 @@ void bxCAN_MainTask(void)
             if (x == 100)
             {
 #ifdef RECEIVER
-                DEBUG_CAN("\n Received Data 0 = 0x%x\n", CAN_RX_0->RIxR);
-                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDTxR);
-                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDLxR);
-                DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDHxR);
-                DEBUG_CAN("\n=========\n");
+                // DEBUG_CAN("\n Received Data 0 = 0x%x\n", CAN_RX_0->RIxR);
+                // DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDTxR);
+                // DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDLxR);
+                // DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDHxR);
+                // DEBUG_CAN("\n=========\n");
 #endif
 #ifdef SENDER
                 /* Check If Transmit box0 is empty */
-                if((CAN->TSR & TME0))
-                {
-                    CAN_TX_0->TIxR = (CAN_MY_11_BIT_ID << 21);
+                // if((CAN->TSR & TME0))
+                // {
+                //     CAN_TX_0->TIxR = (CAN_MY_11_BIT_ID << 21);
 
-                    /* DLC = 8  */
-                    CAN_TX_0->TDTxR = 8;
+                //     /* DLC = 8  */
+                //     CAN_TX_0->TDTxR = 8;
 
-                    CAN_TX_0->TDLxR = TempCounter++;
-                    CAN_TX_0->TDHxR = 0x66666666;
+                //     CAN_TX_0->TDLxR = TempCounter++;
+                //     CAN_TX_0->TDHxR = 0x66666666;
 
-                    CAN_TX_0->TIxR |= TXRQ;
+                //     CAN_TX_0->TIxR |= TXRQ;
                     
-                }
+                // }
 #endif
                 x = 0;
             }

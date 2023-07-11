@@ -17,7 +17,7 @@ NVIC_CR_t *NVIC = (NVIC_CR_t *)NVIC_BASE_ADDRESS;
 
 void NVIC_GlobalInterruptDisable(void)
 {
-    __asm__ volatile( "CPSID I");
+    __asm__ volatile("CPSID I");
 }
 
 /**
@@ -26,7 +26,7 @@ void NVIC_GlobalInterruptDisable(void)
  */
 void NVIC_GlobalInterruptEnable(void)
 {
-     __asm__ volatile( "CPSIE I");
+    __asm__ volatile("CPSIE I");
 }
 
 /**

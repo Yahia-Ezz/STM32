@@ -14,7 +14,8 @@
 #include "uart.h"
 
 extern RCC_t *RCC;
-DMA_Channel_t *My_DMA = (DMA_Channel_t*) DMA_1_BASE_OFFSET_CHANNEL4;
+extern DMA_Channel_t *DMA1 ;
+
 USART_t *USARTX = (USART_t*) USART3_BASE_ADDRESS;
 
 #define		DMA1_EN		(1<<0)
@@ -36,8 +37,8 @@ typedef struct
 	uint32_t Parity;
 	uint32_t Mode;
 	uint32_t HwFlowCtl;
-	uint32_t OverSampling
-}UART_InitTypeDef_t;
+	uint32_t OverSampling;
+} UART_InitTypeDef_t;
 
 void HAL_USART_Transmit()
 {
@@ -79,15 +80,15 @@ void USART3_INIT(void)
  	RCC->AHBENR |= DMA1_EN;
 	
 	USARTX->CR3 |= DMAT_EN;
-	My_DMA->CCRx &=~  (1<<0);
+	DMA1->CCRx &=~  (1<<0);
 	
-	My_DMA->CCRx |= MINC_EN | 
+	DMA1->CCRx |= MINC_EN | 
 					// CIRC_EN | 
 					DIR_EN | 
 					TCIE_EN;
 
 	// Peripheral address
-	My_DMA->CPARx = (uint32_t)& USARTX->DR;
+	DMA1->CPARx = (uint32_t)& USARTX->DR;
 
 // --------------------------------------------------------------------------------------
 
@@ -100,19 +101,17 @@ void USART3_INIT(void)
 	/* Interrupt Enable for DMA1_CH4*/
 	NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 	NVIC_EnableIRQ(USART3_IRQn);
-
 }
 
 void DMA_START(uint32_t* y, uint16_t x)
 {
-	// Number of bytes to transfer.
-	My_DMA->CNDTRx = x;
-	My_DMA->CMARx = (uint32_t)y;
-	My_DMA->CCRx |=  (1<<0U);
+	DMA1->CNDTRx = x;	// Number of bytes to transfer.
+	DMA1->CMARx = (uint32_t)y;
+	DMA1->CCRx |=  (1<<0U);
 }
 void DMA_STOP(void)
 {
-	My_DMA->CCRx &=~  (1<<0);
+	DMA1->CCRx &=~  (1<<0);
 }
 
 void USART3_Send(char TX)
