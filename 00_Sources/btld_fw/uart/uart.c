@@ -14,7 +14,7 @@
 #include "uart.h"
 
 extern RCC_t *RCC;
-extern DMA_Channel_t *DMA1 ;
+extern DMA_Channel_t *DMA1_CH4 ;
 
 USART_t *USARTX = (USART_t*) USART3_BASE_ADDRESS;
 
@@ -80,15 +80,14 @@ void USART3_INIT(void)
  	RCC->AHBENR |= DMA1_EN;
 	
 	USARTX->CR3 |= DMAT_EN;
-	DMA1->CCRx &=~  (1<<0);
+	DMA1_CH4->CCRx &=~  (1<<0);
 	
-	DMA1->CCRx |= MINC_EN | 
+	DMA1_CH4->CCRx |= MINC_EN | 
 					// CIRC_EN | 
 					DIR_EN | 
 					TCIE_EN;
 
-	// Peripheral address
-	DMA1->CPARx = (uint32_t)& USARTX->DR;
+
 
 // --------------------------------------------------------------------------------------
 
@@ -105,13 +104,14 @@ void USART3_INIT(void)
 
 void DMA_START(uint32_t* y, uint16_t x)
 {
-	DMA1->CNDTRx = x;	// Number of bytes to transfer.
-	DMA1->CMARx = (uint32_t)y;
-	DMA1->CCRx |=  (1<<0U);
+	DMA1_CH4->CPARx = (uint32_t)& USARTX->DR;		// Peripheral address
+	DMA1_CH4->CNDTRx = x;							// Number of bytes to transfer.
+	DMA1_CH4->CMARx = (uint32_t)y;					// Buffer Addr
+	DMA1_CH4->CCRx |=  (1<<0U);
 }
 void DMA_STOP(void)
 {
-	DMA1->CCRx &=~  (1<<0);
+	DMA1_CH4->CCRx &=~  (1<<0);
 }
 
 void USART3_Send(char TX)

@@ -3,20 +3,32 @@
 #include "gpio.h"
 #include "SCH.h"
 #include "Serial_Print.h"
+#include "dma.h"
 #include "nvic.h"
 #include "spi.h"
 #include "spi_cfg.h"
 
 extern struct RCC_t* RCC;
+extern DMA_Channel_t *DMA1_CH3 ;
+
+#define		DMA1_EN		(1<<0)
+#define		MINC_EN		(1<<7)
+#define		DIR_EN		(1<<4)
+#define		TCIE_EN		(1<<1)
+
 extern SPIx_CFG_t SPIx_CFG;
 
-#define SPE (1<<6)
-#define RXNE (1<<0)
-#define TXE (1<<1)
-#define BSY (1<<7)
+uint8_t SPI_DataBuffPtr[3]={77,99,55};
 
-#define SSO (1<<2)
-#define RXNEIE (1<<6)
+#define	SPE 	(1<<6)
+#define	RXNE 	(1<<0)
+#define	TXE 	(1<<1)
+#define	BSY 	(1<<7)
+
+#define TXDMAEN 	(1 << 1)
+#define SSO 		(1 << 2)
+
+#define RXNEIE		(1 << 6)
 
 #define ENABLE_SPI_PREIPHERAL	(SPIx_CFG.Instance->CR1 |= SPE)
 #define DISABLE_SPI_PREIPHERAL	(SPIx_CFG.Instance->CR1 &=~ SPE)
@@ -26,6 +38,7 @@ extern SPIx_CFG_t SPIx_CFG;
 
 
 static void SPIx_MainFunction(void);
+void SPIx_DMAStart(uint8_t* DataBuffPtr,uint8_t NumberOfBytes);
 
 uint16_t Data_Receiver =0x0000;
 
@@ -69,13 +82,29 @@ void SPIx_Init(void)
 							   (SPIx_CFG.BitOrder << 7) | (SPIx_CFG.BaudRate << 3) |
 							   (SPIx_CFG.Mode << 2) | (SPIx_CFG.ClockPolarity << 1) | (SPIx_CFG.ClockPhase << 0);
 #ifdef SENDER
- 	SPIx_CFG.Instance->CR2 |= SSO;
+ 	SPIx_CFG.Instance->CR2 |= 	SSO | 
+	/* -------------------------------DMA ---------------------------- */
+	 							TXDMAEN ;	
+
+	/* 	 DMA CLOCK enable  DMA1 Ch 3 SPI1 Tx*/
+ 	RCC->AHBENR |= DMA1_EN;
+
+	DMA1_CH3->CCRx &=~  (1<<0); // DMA STOP
+	
+	DMA1_CH3->CCRx |=	MINC_EN | 
+	              	DIR_EN | 
+					TCIE_EN;
+
+	NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+	ENABLE_SPI_PREIPHERAL;
+
 #endif
 #ifdef RECEIVER
 	SPIx_CFG.Instance->CR2 |= RXNEIE;
-	NVIC_EnableIRQ(SPI1_IRQn);
 	ENABLE_SPI_PREIPHERAL;
 #endif
+
+	NVIC_EnableIRQ(SPI1_IRQn);
 
 	SCH_AppendTaskToQueue(&SPIx_MainFunction);
 }
@@ -87,8 +116,9 @@ static void SPIx_MainFunction(void)
 	if (x == 100)
 	{
 #ifdef SENDER
-		SPIx_SendByte(y);
-		y+=1;
+		// SPIx_SendByte(y);
+		// y+=1;
+		SPIx_DMAStart(SPI_DataBuffPtr,2);
 #endif
 #ifdef RECEIVER
 	SERIAL_Print("\nData_Receiver = %d\n",Data_Receiver);
@@ -97,7 +127,7 @@ static void SPIx_MainFunction(void)
 	}
 }
 
-void SPIx_SendByte(uint8_t Data)
+void SPIx_SendBytePolling(uint8_t Data)
 {
 	// volatile uint8_t Temp = 0;
 
@@ -120,4 +150,21 @@ void SPIx_ReceiveByte(void)
 {
 	Data_Receiver = SPIx_CFG.Instance->DR;
 	SPIx_CFG.Instance->DR =  0x55;
+}
+
+
+void SPIx_DMAStart(uint8_t* DataBuffPtr,uint8_t NumberOfBytes)
+{
+	DMA1_CH3->CPARx = (uint32_t)& SPIx_CFG.Instance->DR;		// Peripheral address
+	DMA1_CH3->CNDTRx = NumberOfBytes;							// Number of bytes to transfer.
+	DMA1_CH3->CMARx = (uint32_t)DataBuffPtr;					// Buffer Addr
+
+	DMA1_CH3->CCRx |=  (1<<0U);									// DMA Start
+}
+
+
+void DMA1_CH3_Handler(void)
+{
+	*((volatile uint32_t*)0x40020004) |= (1<<8);				//Clear Transmit interrupt flag
+	DMA1_CH3->CCRx &=~  (1<<0);									// STOP DMA
 }

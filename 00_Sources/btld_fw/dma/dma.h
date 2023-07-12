@@ -24,6 +24,7 @@ typedef struct
 }DMA_Channel_t;
 
 #define DMA_BASE_ADDRESS	0x40020000
+#define DMA_1_BASE_OFFSET_CHANNEL3	(DMA_BASE_ADDRESS + 0x30)
 #define DMA_1_BASE_OFFSET_CHANNEL4	(DMA_BASE_ADDRESS + 0x44)
 void DMA_Init(void);
 

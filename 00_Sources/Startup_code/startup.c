@@ -11,6 +11,7 @@ extern uint32_t _bss_end;
 
 
 extern void SysTick_Handler(void);
+extern void DMA1_CH3_Handler(void);
 extern void DMA1_CH4_Handler(void);
 
 extern void CAN_SCE_Handler(void);
@@ -52,7 +53,7 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// EXTI4
 	0,								// DMA1_Channel1
 	0,								// DMA1_Channel2
-	0,								// DMA1_Channel3
+	(uint32_t*)DMA1_CH3_Handler,	// DMA1_Channel3
 	(uint32_t*)DMA1_CH4_Handler,	// DMA1_Channel4	14
 	0,								// DMA1_Channel5
 	0,								// DMA1_Channel6

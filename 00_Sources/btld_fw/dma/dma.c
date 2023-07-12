@@ -10,7 +10,8 @@
 #include "dma.h"
 #include "uart.h"
 
-DMA_Channel_t *DMA1 = (DMA_Channel_t*) DMA_1_BASE_OFFSET_CHANNEL4;
+DMA_Channel_t *DMA1_CH3 = (DMA_Channel_t*) DMA_1_BASE_OFFSET_CHANNEL3;
+DMA_Channel_t *DMA1_CH4 = (DMA_Channel_t*) DMA_1_BASE_OFFSET_CHANNEL4;
 
 // USART1_TX Channel 4 HW request 4 DMA1
 
