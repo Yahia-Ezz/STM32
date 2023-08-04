@@ -92,18 +92,16 @@ void SPIx_Init(void)
 	DMA1_CH3->CCRx &=~  (1<<0); // DMA STOP
 	
 	DMA1_CH3->CCRx |=	MINC_EN | 
-	              	DIR_EN | 
-					TCIE_EN;
+	                    DIR_EN | 
+	                    TCIE_EN;
 
 	NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-	ENABLE_SPI_PREIPHERAL;
-
 #endif
 #ifdef RECEIVER
 	SPIx_CFG.Instance->CR2 |= RXNEIE;
-	ENABLE_SPI_PREIPHERAL;
 #endif
 
+	ENABLE_SPI_PREIPHERAL;
 	NVIC_EnableIRQ(SPI1_IRQn);
 
 	SCH_AppendTaskToQueue(&SPIx_MainFunction);
@@ -118,7 +116,7 @@ static void SPIx_MainFunction(void)
 #ifdef SENDER
 		// SPIx_SendByte(y);
 		// y+=1;
-		SPIx_DMAStart(SPI_DataBuffPtr,2);
+		SPIx_DMAStart(SPI_DataBuffPtr,3);
 #endif
 #ifdef RECEIVER
 	SERIAL_Print("\nData_Receiver = %d\n",Data_Receiver);
@@ -155,9 +153,11 @@ void SPIx_ReceiveByte(void)
 
 void SPIx_DMAStart(uint8_t* DataBuffPtr,uint8_t NumberOfBytes)
 {
-	DMA1_CH3->CPARx = (uint32_t)& SPIx_CFG.Instance->DR;		// Peripheral address
-	DMA1_CH3->CNDTRx = NumberOfBytes;							// Number of bytes to transfer.
-	DMA1_CH3->CMARx = (uint32_t)DataBuffPtr;					// Buffer Addr
+	ENABLE_SPI_PREIPHERAL;
+
+	DMA1_CH3->CPARx = (uint32_t)& SPIx_CFG.Instance->DR;        // Peripheral address
+	DMA1_CH3->CNDTRx = NumberOfBytes;                           // Number of bytes to transfer.
+	DMA1_CH3->CMARx = (uint32_t)DataBuffPtr;                    // Buffer Addr
 
 	DMA1_CH3->CCRx |=  (1<<0U);									// DMA Start
 }
