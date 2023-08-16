@@ -90,6 +90,10 @@ typedef struct
     SPI_BitOrder_t BitOrder;
     SPI_CrcCalculation_t CrcCalculation;
     uint32_t CRCPoly;
+    uint8_t *ReceiveBufferPtr;
+    uint8_t ReceiveBufferSize;
+    uint8_t *TransmitBufferPtr;
+    uint8_t TransmitBufferSize;
 } SPIx_CFG_t;
 
 #define SPI1_Instance   0x40013000
@@ -99,8 +103,8 @@ typedef struct
 /*
  *      Driver Function Prototypes
  */
-void SPIx_Init(void);
+void SPIx_Init(SPIx_CFG_t *RequestedConfigurationPtr);
 void SPIx_SendByte(uint8_t Data);
-void SPIx_ReceiveByte(void);
-
+void SPIx_InterruptHandler(void);
+void SPIx_Transceive_DMA(uint8_t* DataBuffPtr,uint8_t NumberOfBytes);
 #endif

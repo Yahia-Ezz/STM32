@@ -7,6 +7,7 @@
 #include "nvic.h"
 #include "spi.h"
 #include "Serial_Print.h"
+#include "ENC28J60.h" 
 
 #define AFIOEN 0U
 #define MR0 0U
@@ -21,23 +22,18 @@ int main( void )
     GPIO_InitPin(GPIO_PORTC, GPIO_PIN_13, GPIO_OUTPUT_50MHZ, GPIO_OUT_PUSH_PULL);
     GPIO_SetPin(GPIO_PORTC, GPIO_PIN_13, GPIO_HIGH);
 
-    SPIx_Init();
     USART3_INIT();
     SCH_Init();
     Serial_Print_Init();
     bxCAN_Init();
+    ENC28J60_Init();
 
     NVIC_GlobalInterruptEnable();
     
     SCH_AppendTaskToQueue(&ToggleLEDTask);
 
     SERIAL_Print("\n ==== New Main  ==== \n");
-#ifdef SENDER
-    SERIAL_Print("\n ==== Scheduler Execution Started Sender  ==== \n");
-#endif
-#ifdef RECEIVER
-    SERIAL_Print("\n ==== Scheduler Execution Started Receiver ==== \n");
-#endif
+    SERIAL_Print("\n ==== Scheduler Execution Started ==== \n");
     SCH_StartExecution();
 
     while ( 1 )
@@ -50,8 +46,8 @@ int main( void )
 
 void ToggleLEDTask(void)
 {
-    static int x =0 ;
-    x++; 
+    static uint8_t x = 0U;
+    x++;
     if (x==100)
     {
         GPIO_SetPin(GPIO_PORTC,GPIO_PIN_13,GPIO_LOW);

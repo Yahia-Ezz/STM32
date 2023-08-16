@@ -10,6 +10,7 @@
 
 
 
+
 #define RCC_BASE_ADD 		0x40021000U
 #define RCC_APB2ENR			0x40021018U
 // #define	RCC_USART3_MASK_EN	0x00040000U
@@ -19,7 +20,6 @@
 
 //0000: PLL input clock x 2
 //1111: PLL input clock x 16
-
 
 
 typedef struct RCC_t
@@ -35,6 +35,8 @@ typedef struct RCC_t
    uint32_t BDCR;
    uint32_t CSR;
 }RCC_t;
+
+extern RCC_t*RCC;
 
 // enum Peripherals 
 // {

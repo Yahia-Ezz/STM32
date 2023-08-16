@@ -63,8 +63,6 @@
 #define DEBUG_CAN
 #endif
 
-extern RCC_t *RCC;
-
 typedef struct 
 {
     uint32_t MCR;   //CAN Control register
@@ -115,8 +113,8 @@ typedef enum
 }Can_SM_t;
 
 volatile static Can_SM_t CurrentCAN_SM = CAN_INIT;
-volatile static CAN_TX_t * CAN_TX_0 = (CAN_TX_t *)CAN_TRANSMIT_BOX_0_BASE_ADDRESS;
-volatile static CAN_RX_t * CAN_RX_0 = (CAN_RX_t *)CAN_RECEIVE_BOX_0_BASE_ADDRESS;
+// volatile static CAN_TX_t * CAN_TX_0 = (CAN_TX_t *)CAN_TRANSMIT_BOX_0_BASE_ADDRESS;
+// volatile static CAN_RX_t * CAN_RX_0 = (CAN_RX_t *)CAN_RECEIVE_BOX_0_BASE_ADDRESS;
 volatile static CAN_t* CAN = (CAN_t*)CAN_BASE_ADDRESS;
 volatile CAN_FMR_t* CAN_FR = (CAN_FMR_t*)CAN_FILTER_BASE_ADDRESS;
 
@@ -179,10 +177,10 @@ void bxCAN_Init(void)
         Set Loop back mode -> TX transmitted messages treated as received messages and stored
         Set Silent Mode -> No TX sent on Bus only internally
     */
-    CAN->BTR = ( 0x00050000     \
-                // |  LBKM         \
+    CAN->BTR = ( 0x00050000   ); 
+                // |  LBKM         
                 // |  SILM         
-               );
+              
 
     CAN_FR->FMR = ((28U<<8U) | \
                    FINIT) ;
@@ -248,7 +246,7 @@ void bxCAN_MainTask(void)
                 // DEBUG_CAN("\n Received Data 0 = 0x%x\n",CAN_RX_0->RDHxR);
                 // DEBUG_CAN("\n=========\n");
 #endif
-#ifdef SENDER
+#ifdef SENDER1
                 /* Check If Transmit box0 is empty */
                 // if((CAN->TSR & TME0))
                 // {

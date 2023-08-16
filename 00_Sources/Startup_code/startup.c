@@ -11,6 +11,7 @@ extern uint32_t _bss_end;
 
 
 extern void SysTick_Handler(void);
+extern void DMA1_CH2_Handler(void);
 extern void DMA1_CH3_Handler(void);
 extern void DMA1_CH4_Handler(void);
 
@@ -18,7 +19,7 @@ extern void CAN_SCE_Handler(void);
 extern void CAN_RX1_Handler(void);
 extern void USB_LP_CAN_RX0_Handler(void);
 extern void USB_HP_CAN_TX_Handler(void);
-extern void SPIx_ReceiveByte(void);
+extern void SPIx_InterruptHandler(void);
 
 
 uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector"))) =
@@ -52,17 +53,17 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// EXTI3
 	0,								// EXTI4
 	0,								// DMA1_Channel1
-	0,								// DMA1_Channel2
+	(uint32_t*)DMA1_CH2_Handler,	// DMA1_Channel2
 	(uint32_t*)DMA1_CH3_Handler,	// DMA1_Channel3
 	(uint32_t*)DMA1_CH4_Handler,	// DMA1_Channel4	14
 	0,								// DMA1_Channel5
 	0,								// DMA1_Channel6
 	0,								// DMA1_Channel7
 	0,								// ADC1_2
-	(uint32_t*)USB_HP_CAN_TX_Handler,	// USB_HP_CAN_TX	19
-	(uint32_t*)USB_LP_CAN_RX0_Handler,	// USB_LP_CAN_RX0	20
-	(uint32_t*)CAN_RX1_Handler,	// CAN_RX1			21
-	(uint32_t*)CAN_SCE_Handler,	// CAN_SCE			22
+	(uint32_t*)USB_HP_CAN_TX_Handler,		// USB_HP_CAN_TX	19
+	(uint32_t*)USB_LP_CAN_RX0_Handler,		// USB_LP_CAN_RX0	20
+	(uint32_t*)CAN_RX1_Handler,				// CAN_RX1			21
+	(uint32_t*)CAN_SCE_Handler,				// CAN_SCE			22
 	0,								// EXTI9_5
 	0,								// TIM1_BRK
 	0,								// TIM1_UP
@@ -75,7 +76,7 @@ uint32_t const * InterruptVectorArr[] __attribute__ ((section(".interruptsvector
 	0,								// I2C1_ER			// 0 ISER1
 	0,								// I2C2_EV
 	0,								// I2C2_ER
-	(uint32_t*)SPIx_ReceiveByte,	// SPI1
+	(uint32_t*)SPIx_InterruptHandler,	// SPI1
 	0       						// SPI2
 };
 

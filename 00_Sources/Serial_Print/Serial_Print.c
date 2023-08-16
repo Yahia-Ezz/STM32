@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "SCH.h"
 #include "gpio.h"
+#include "dma.h"
 #include "Serial_Print.h"
 
 typedef enum 
@@ -54,7 +55,7 @@ void Serial_Print_Init(void)
 }
 void DMA1_CH4_Handler(void)
 {
-	BufferData.PrintState = IDLE; 								// Clear Printing Flag
+	BufferData.PrintState = IDLE; 								// Clear Busy Flag
 	BufferData.TotalSavedData -= 1U;							// Remove the printed string from Total Queue number
 	TotalBuffSize += StringBufferData[CurrPrintIdx].Size; 		// Add the printed string size from allowed space
 	if (CurrPrintIdx == (SERIAL_PRINT_BUFF_QUEUE_SIZE - 1U)) 	// Reset print index to next slot
@@ -65,8 +66,7 @@ void DMA1_CH4_Handler(void)
 	{
 		CurrPrintIdx++;
 	}
-	*((volatile uint32_t*)0x40020004) |= (1<<12);				//Clear Transmit interrupt flag
-	DMA_STOP();													//Disable DMA 1 Ch4 
+	DMA_ClearInterruptFlag(DMA_Stream1,4);
 }
 
 
@@ -80,7 +80,8 @@ static void Serial_Print_Task(void)
 				if (BufferData.TotalSavedData > 0U)
 				{
 					BufferData.PrintState = BUSY;
-					DMA_START((uint32_t*)&SerialPrintBuff[StringBufferData[CurrPrintIdx].StrIdxStart], StringBufferData[CurrPrintIdx].Size);
+					USART_Transmit_DMA( (uint32_t*)&SerialPrintBuff[StringBufferData[CurrPrintIdx].StrIdxStart],
+							  			StringBufferData[CurrPrintIdx].Size);
 				}	
 	;break; 
 	

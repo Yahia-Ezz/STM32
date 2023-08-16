@@ -17,6 +17,7 @@ CFLAGS += -O0
 CFLAGS += -mcpu=cortex-m3 
 CFLAGS += -mthumb
 CFLAGS += -ggdb
+CFLAGS += -I$(Source_Folder)/ENC28J60
 CFLAGS += -I$(Source_Folder)/btld_fw/nvic
 CFLAGS += -I$(Source_Folder)/btld_fw/spi
 CFLAGS += -I$(Source_Folder)/Startup_code

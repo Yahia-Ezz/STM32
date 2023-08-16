@@ -8,7 +8,7 @@
 #ifndef USART_H_
 #define USART_H_
 
-typedef struct
+typedef  struct
 {
 	uint16_t SR;
 	uint16_t RESERVED_SR;
@@ -34,9 +34,9 @@ typedef struct
 
 
 void DMA_STOP(void);
-void DMA_START(uint32_t* y, uint16_t x);
 void USART3_INIT(void);
 void USART3_Send(char TX);
 void USART3_Receive(uint8_t *Var);
+void USART_Transmit_DMA(uint32_t* MemoryAddress, uint32_t DataSize);
 #endif /* UART_H_ */
  
