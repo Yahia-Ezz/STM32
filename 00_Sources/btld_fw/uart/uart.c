@@ -15,7 +15,6 @@
 
 #include "uart_cfg.h"
 
-extern DMA_ChannelCtrl_t *DMA1_CH4 ;
 
 USART_t *USARTX = (USART_t*) USART3_BASE_ADDRESS;
 
@@ -89,11 +88,6 @@ void USART3_INIT(void)
 
 	USARTX->CR1 |= TE_EN;
 	USARTX->CR1 |= UE_EN;  //TX ENABLE === USART Enable
-}
-
-void DMA_STOP(void)
-{
-	DMA1_CH4->CCRx &=~  (1<<0);
 }
 
 void USART3_Send(char TX)

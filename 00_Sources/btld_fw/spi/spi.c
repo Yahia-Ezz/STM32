@@ -123,11 +123,11 @@ void SPIx_InterruptHandler(void)
 
 void DMA1_CH2_Handler(void)
 {
-	DMA_ClearInterruptFlag(DMA_Stream1,2);
+	DMA_ClearInterruptFlag(DMA_Stream1,DMA_GIF_2);
 }
 void DMA1_CH3_Handler(void)
 {
-	DMA_ClearInterruptFlag(DMA_Stream1,3);
+	DMA_ClearInterruptFlag(DMA_Stream1,DMA_GIF_3);
 	DISABLE_SPI_PREIPHERAL;                  // SPI peripheral must be disabled for the NSS to go HIGH !
 }
 

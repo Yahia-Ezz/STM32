@@ -66,10 +66,8 @@ void DMA_Start_IT(
 
 void DMA_ClearInterruptFlag (DMA_Stream_t SteamX, DMA_GlobalInterruptFlag_t FlagNumber)
 {
-    *((volatile uint32_t* )SteamX) |= (1U<< FlagNumber);
+    *((volatile uint32_t *)(SteamX + 0x4)) |= (1U << FlagNumber); // IFCR + 0x4
 }
-
-
 
 /*
 void DMA_DeInit(void);

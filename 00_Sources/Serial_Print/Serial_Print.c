@@ -66,7 +66,7 @@ void DMA1_CH4_Handler(void)
 	{
 		CurrPrintIdx++;
 	}
-	DMA_ClearInterruptFlag(DMA_Stream1,4);
+	DMA_ClearInterruptFlag(DMA_Stream1,DMA_GIF_4);
 }
 
 

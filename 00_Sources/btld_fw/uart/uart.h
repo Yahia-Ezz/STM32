@@ -32,8 +32,6 @@ typedef  struct
 #define USART3_TXE_MASK			0x00000080
 #define USART3_RXNE_MASK		0x00000020
 
-
-void DMA_STOP(void);
 void USART3_INIT(void);
 void USART3_Send(char TX);
 void USART3_Receive(uint8_t *Var);
