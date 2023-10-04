@@ -17,22 +17,24 @@ CFLAGS += -O0
 CFLAGS += -mcpu=cortex-m3 
 CFLAGS += -mthumb
 CFLAGS += -ggdb
-CFLAGS += -I$(Source_Folder)/ENC28J60
-CFLAGS += -I$(Source_Folder)/btld_fw/nvic
-CFLAGS += -I$(Source_Folder)/btld_fw/spi
 CFLAGS += -I$(Source_Folder)/Startup_code
+CFLAGS += -I$(Source_Folder)/btld_fw/nvic
+CFLAGS += -I$(Source_Folder)/btld_fw/adc
+CFLAGS += -I$(Source_Folder)/btld_fw/spi
 CFLAGS += -I$(Source_Folder)/btld_fw/gpio
+CFLAGS += -I$(Source_Folder)/btld_fw/Can
 CFLAGS += -I$(Source_Folder)/btld_fw/rcc
 CFLAGS += -I$(Source_Folder)/btld_fw/uart
 CFLAGS += -I$(Source_Folder)/btld_fw/flash_wrapper
 CFLAGS += -I$(Source_Folder)/btld_fw/dma
 CFLAGS += -I$(Source_Folder)/btld_fw/scb
 CFLAGS += -I$(Source_Folder)/btld_fw/i2c
-CFLAGS += -I$(Source_Folder)/X_Modem
 CFLAGS += -I$(Source_Folder)/btld
+CFLAGS += -I$(Source_Folder)/X_Modem
+CFLAGS += -I$(Source_Folder)/ENC28J60
 CFLAGS += -I$(Source_Folder)/Scheduler
 CFLAGS += -I$(Source_Folder)/Serial_Print
-CFLAGS += -I$(Source_Folder)/Can
+CFLAGS += -L$(Source_Folder)/lib
 CFLAGS += -D$(MYARG)
 
 all: $(SRCS)

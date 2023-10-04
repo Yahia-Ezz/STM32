@@ -96,6 +96,14 @@ typedef struct
     uint8_t TransmitBufferSize;
 } SPIx_CFG_t;
 
+typedef enum
+{
+    IDLE = 0U,
+    BUSY
+} SPIx_CurrentState_t;
+
+extern volatile SPIx_CurrentState_t SPIx_CurrentState;
+
 #define SPI1_Instance   0x40013000
 #define SPI2_Instance   0x40003800
 #define SPI3_Instance   0x40003C00

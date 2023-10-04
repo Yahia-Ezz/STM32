@@ -38,13 +38,15 @@
 extern struct RCC_t* RCC;
 
 SPIx_CFG_t *SPIx_CFG;
-
 uint8_t DMA_Finished_Transmit_Flag ;
+volatile SPIx_CurrentState_t SPIx_CurrentState;
+
 
 void SPIx_DMAStart(uint8_t* DataBuffPtr,uint8_t NumberOfBytes);
 
 void SPIx_Init(SPIx_CFG_t *RequestedConfigurationPtr)
 {
+	SPIx_CurrentState = IDLE;
 	SPIx_CFG = RequestedConfigurationPtr;
 
 	/* Clock Configuration  */
@@ -123,6 +125,7 @@ void SPIx_InterruptHandler(void)
 
 void DMA1_CH2_Handler(void)
 {
+	SPIx_CurrentState = IDLE;
 	DMA_ClearInterruptFlag(DMA_Stream1,DMA_GIF_2);
 }
 void DMA1_CH3_Handler(void)
@@ -134,6 +137,8 @@ void DMA1_CH3_Handler(void)
 void SPIx_Transceive_DMA(uint8_t* DataBuffPtr,uint8_t NumberOfBytes)
 {
 	ENABLE_SPI_PREIPHERAL;
+	
+	SPIx_CurrentState = BUSY;
 
 	DMA_Start_IT(DMA_Stream1,DMA_CHANNEL_2,(void *)&SPIx_CFG->Instance->DR,(void *)SPIx_CFG->ReceiveBufferPtr,NumberOfBytes);
 	DMA_Start_IT(DMA_Stream1,DMA_CHANNEL_3,(void*)&SPIx_CFG->Instance->DR,(void*)DataBuffPtr,NumberOfBytes);

@@ -9,7 +9,7 @@ extern uint8_t ENC28J60_TransmitBuffer[3];
 SPIx_CFG_t ENC28J60_CFG =
 {
     .Instance = (SPIx_t *)SPI1_Instance,
-    .BaudRate = SPI_BAUDRATEPRESCALER_DIV4,
+    .BaudRate = SPI_BAUDRATEPRESCALER_DIV2,
     .BitOrder = SPI_MSB_FIRST,
     .DataWidth = SPI_DATAWIDTH_8BIT,
     .CrcCalculation = SPI_CRCCALCULATION_DISABLE,
