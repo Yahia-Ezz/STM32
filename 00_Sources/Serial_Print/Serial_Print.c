@@ -96,6 +96,7 @@ void SERIAL_Print(char *fmt, ...)
 	uint8_t cnt = 0U;
 	char *tmp_pu8 = 0U;
 	uint32_t tmp_u32 = 0U;
+	double tmp_f = 0.0;
 
 	uint16_t TempStrIdx = 0U;
 	uint8_t TempStrBuff[100];
@@ -124,7 +125,10 @@ void SERIAL_Print(char *fmt, ...)
                     tmp_u32 = va_arg(lst, uint32_t);
                     FormatSpecifierHandler(fmt[cnt],(void*) tmp_u32,&TempStrIdx,TempStrBuff);
                     break;
-
+				case 'f':
+                    tmp_f = va_arg(lst, double);
+                    FormatSpecifierHandler(fmt[cnt],(void*)((uint32_t)(tmp_f*1000.0)),&TempStrIdx,TempStrBuff);
+					break;
                 default :
                     break;
             }
@@ -180,6 +184,35 @@ static void FormatSpecifierHandler(char X, void * Var,uint16_t *TempCounter,uint
 				(*TempCounter)++;
             }
 	    }
+		break;
+	case 'f':
+		if ((uint32_t)Var == 0)
+		{
+			TempBuff[(*TempCounter)] = '0';
+			(*TempCounter)++;
+			TempBuff[(*TempCounter)] = '.';
+			(*TempCounter)++;
+			TempBuff[(*TempCounter)] = '0';
+			(*TempCounter)++;
+		}
+		else
+		{
+			for (i = 0U; tmp2 != 0U; i++)
+			{
+				arr[i] = tmp2 % 10 + '0';
+				tmp2 /= 10;
+			}
+			for (i = i - 1; i > (-1); i--)
+			{
+				TempBuff[(*TempCounter)] = arr[i];
+				(*TempCounter)++;
+			}
+			TempBuff[(*(TempCounter))] = TempBuff[(*(TempCounter)-1)];
+			TempBuff[(*(TempCounter)-1)] = TempBuff[(*(TempCounter)-2)];
+			TempBuff[(*(TempCounter)-2)] = TempBuff[(*(TempCounter)-3)];
+			TempBuff[(*(TempCounter)-3)] = '.';
+			(*TempCounter)++;
+		}
 		break;
 	case 'x':
 		for (; tmp != 0U; x -= 4U)

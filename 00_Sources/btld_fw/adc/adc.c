@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include "mytypes.h"
 #include "SCH.h"
 #include "rcc.h"
@@ -49,9 +50,11 @@ void ADC_init(void)
 static void ADC_MainFunction(void)
 {
 	static int i=0;
+	volatile static float x = 0.00;
+	x=ADC_READING*25/1840.0;
 	if(i==100)
 	{
-		SERIAL_Print("Reading = %d \n",ADC_READING);
+		SERIAL_Print("Reading 2= %d Degrees in C = %f\n",ADC_READING,x);
 	    // Start conversion with software trigger
     	ADC->CR2.B.SWSTART = SET;
     	i=0;

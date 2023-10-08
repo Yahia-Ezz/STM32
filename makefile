@@ -2,48 +2,40 @@ Source_Folder = 00_Sources
 Output_Folder = 01_Output
 Install_Folder = 02_Install
 ApplicationName = STM_App
+
 CC = arm-none-eabi-gcc
 LD = arm-none-eabi-ld
 NM = arm-none-eabi-nm
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 
-VPATH += $(Source_Folder)/Startup_code  $(Source_Folder)/Interrupts
-
-SRCS = $(wildcard */*.c */*/*.c */*/*/*.c)
+SRCS = $(wildcard $(Source_Folder)/*.c $(Source_Folder)/*/*.c $(Source_Folder)/*/*/*.c)
+HEADERS = $(wildcard $(Source_Folder)/*.h $(Source_Folder)/*/*.h $(Source_Folder)/*/*/*.h)
+HEADERS_DIR := $(foreach d,$(HEADERS),-I$(dir $(d)))
 
 CFLAGS += -Wall 
 CFLAGS += -O0 
 CFLAGS += -mcpu=cortex-m3 
+CFLAGS += -mfloat-abi=soft
 CFLAGS += -mthumb
 CFLAGS += -ggdb
-CFLAGS += -I$(Source_Folder)/Startup_code
-CFLAGS += -I$(Source_Folder)/btld_fw/nvic
-CFLAGS += -I$(Source_Folder)/btld_fw/adc
-CFLAGS += -I$(Source_Folder)/btld_fw/spi
-CFLAGS += -I$(Source_Folder)/btld_fw/gpio
-CFLAGS += -I$(Source_Folder)/btld_fw/Can
-CFLAGS += -I$(Source_Folder)/btld_fw/rcc
-CFLAGS += -I$(Source_Folder)/btld_fw/uart
-CFLAGS += -I$(Source_Folder)/btld_fw/flash_wrapper
-CFLAGS += -I$(Source_Folder)/btld_fw/dma
-CFLAGS += -I$(Source_Folder)/btld_fw/scb
-CFLAGS += -I$(Source_Folder)/btld_fw/i2c
-CFLAGS += -I$(Source_Folder)/btld
-CFLAGS += -I$(Source_Folder)/X_Modem
-CFLAGS += -I$(Source_Folder)/ENC28J60
-CFLAGS += -I$(Source_Folder)/Scheduler
-CFLAGS += -I$(Source_Folder)/Serial_Print
-CFLAGS += -L$(Source_Folder)/lib
 CFLAGS += -D$(MYARG)
 
+LDFLAGS += -L./StaticLibs
+LDFLAGS += -lgcc
+LDFLAGS += -lm
+LDFLAGS += -lc_nano
+LDFLAGS += -lc
+
+.PHONY : all
+
 all: $(SRCS)
-	@echo -e "\n------%% Building %%------\n"  
-	$(foreach src,$(SRCS),$(shell  echo -e $(CC) $(CFLAGS) -c $(src) -o $(subst .c,.o,$(src)));)
+	@echo -e "\n------%% Building %%------\n"
+	$(foreach src,$(SRCS),$(shell echo -e $(CC) $(CFLAGS) $(HEADERS_DIR) -c $(src) -o $(subst .c,.o,$(src)));)
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% Linking %%------\n"  
 	@$(shell if [ ! -d $(Output_Folder) ];then mkdir $(Output_Folder);fi )
-	$(LD) -Map App.map  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) -o $(Output_Folder)/$(ApplicationName).elf
+	$(LD) -Map App.map  -T LinkerCommands.ld $(subst .c,.o,$(SRCS)) $(LDFLAGS) -o $(Output_Folder)/$(ApplicationName).elf
 	@#--------------------------------------------------------------------------------------------
 	@echo -e "\n------%% ELF->BIN %%------\n"  
 	@$(shell if [ ! -d $(Install_Folder) ];then mkdir $(Install_Folder);fi )
